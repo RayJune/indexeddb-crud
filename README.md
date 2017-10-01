@@ -1,6 +1,6 @@
 # indexedDB-CRUD
 
-indexedDB-CRUD packs complex indexedDB CRUD methods to a really coder-friendly simple interface
+indexedDB-CRUD packs obscure indexedDB CRUD methods to a really coder-friendly simple interface.
 
 It supports a `fixed keypath: id` (number), and CRUE methods to easy-operate indexedDB.
 
@@ -21,10 +21,10 @@ var myDB = require('indexeddb-crud');
 #### init
 
 ```javascript
-myDB.init(dbConfig, initCallback);
+myDB.init(dbConfig, callback);
 ```
 
-* your dbConfig's structure should like this:
+* your dbConfig's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `id is compulsory`):
 
 ```javascript
   var dbConfig = {  
@@ -39,13 +39,14 @@ myDB.init(dbConfig, initCallback);
   };
 ```
 
-* about the callback suggest you input a function to initial your eventListeners (when indexedDB opened, it will be called)
+* The callback is `compulsory`, which is used to initial your eventListeners (when indexedDB opened, it will be called)
 
 #### createOneData
 
 ```javascript
 myDB.createOneData(newData, callback, [callbackParaArr]);
 ```
+* newData's structure should equally to your dbConfig.dataDemo.
 
 * the callback and callbackParaArr is `optional`, when createOneData succeed it will be called
 

@@ -4,8 +4,9 @@ var handleIndexedDB = (function handleIndexedDB() {
   /* initial indexedDB functions */
 
   // two private property
-  var userID;
+
   var dbResult;
+  var userID;
 
   function init(dbConfig, callback) {
     // firstly inspect browser's support for indexedDB
@@ -26,18 +27,14 @@ var handleIndexedDB = (function handleIndexedDB() {
     request.onerror = function error() {
       console.log('fail to load indexedDB');
     };
-    // callback
     request.onsuccess = function success(e) {
       dbResult = e.target.result;
-      getId();
-      if (callback) {
-        callback();
-      }
+      getId(callback);
     };
 
     // When you create a new database or increase the version number of an existing database 
     // (by specifying a higher version number than you did previously, when Opening a database
-    request.onupgradeneeded = function schemaChanged(e) { 
+    request.onupgradeneeded = function schemaChanged(e) {
       dbResult = e.target.result;
       if (!dbResult.objectStoreNames.contains('user')) {
         // set id as keyPath
@@ -64,20 +61,25 @@ var handleIndexedDB = (function handleIndexedDB() {
     return IDBKeyRange.lowerBound(0, true);
   }
 
-  // set now id value to userId (the private property) 
-  function getId() {
+  // set now id value to userID (the private property) 
+
+  function getId(callback) {
     var storeHander = handleTransaction(true);
     var range = rangeToAll();
 
-    storeHander.openCursor(range, 'next').onsuccess = function get(e) {
+    storeHander.openCursor(range, 'next').onsuccess = function (e) {
       var cursor = e.target.result;
 
       if (cursor) {
         cursor.continue();
         userID = cursor.value.id;
+      } else {
+        console.log('now id is:' +  userID);
+        callback();
       }
     };
   }
+
 
   /* CRUD */
 
@@ -93,7 +95,7 @@ var handleIndexedDB = (function handleIndexedDB() {
       if (callback) { // if has callback been input, execute it 
         if (!callbackParaArr) {
           callback();
-        } else {    
+        } else {
           callback.apply(null, callbackParaArr); // it has callback's parameters been input, get it
         }
       }
@@ -108,14 +110,14 @@ var handleIndexedDB = (function handleIndexedDB() {
     var getDataIndex = storeHander.get(index);  // get it by index
 
     getDataIndex.onerror = function getDataIndexError() {
-      console.log('Great, get data succeed');
+      console.log('Pity, get data faild');
     };
     getDataIndex.onsuccess = function getDataIndexSuccess() {
-      console.log('Pity, get data faild');
+      console.log('Great, get data succeed');
       if (!callbackParaArr) {
-        callback(getDataIndex.result);  
+        callback(getDataIndex.result);
       } else {
-        callbackParaArr.unshift(getDataIndex.result); 
+        callbackParaArr.unshift(getDataIndex.result);
         callback.apply(null, callbackParaArr);
       }
     };
@@ -166,7 +168,7 @@ var handleIndexedDB = (function handleIndexedDB() {
         cursor.continue();
       } else if (callback) {
         if (!callbackParaArr) {
-          callback(allDataArr);  
+          callback(allDataArr);
         } else {
           callbackParaArr.unshift(allDataArr);
           callback.apply(null, callbackParaArr);
@@ -204,10 +206,10 @@ var handleIndexedDB = (function handleIndexedDB() {
     var deleteOpt = storeHander.delete(index); // 将当前选中li的数据从数据库中删除
 
     deleteOpt.onerror = function error() {
-      console.log('delete ' + index + 'faild');
+      console.log('delete:' + index + '~faild');
     };
     deleteOpt.onsuccess = function success() {
-      console.log('delete' + index +  'succeed');
+      console.log('delete:' + index +  '~succeed');
       if (callback) {
         if (!callbackParaArr) {
           callback();
@@ -247,6 +249,7 @@ var handleIndexedDB = (function handleIndexedDB() {
   }
 
   // get present id
+  // use closure to keep userID
   function getPresentId() {
     return userID;
   }
