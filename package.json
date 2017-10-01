@@ -1,0 +1,29 @@
+{
+  "name": "indexeddb-crud",
+  "version": "1.0.0",
+  "description": "pack complex indexedDB CRUD methods to a friendly simple interface",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RayJune/indexeddb-curd.git"
+  },
+  "keywords": [
+    "indexedDB", 
+    "crud"
+  ],
+  "author": "RayJune",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RayJune/indexeddb-curd/issues"
+  },
+  "homepage": "https://github.com/RayJune/indexeddb-curd#readme",
+  "devDependencies": {
+    "babel-eslint": "^8.0.1",
+    "eslint": "^4.8.0",
+    "eslint-config-airbnb-es5": "^1.2.0",
+    "eslint-plugin-import": "^2.7.0"
+  }
+}
