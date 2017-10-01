@@ -251,6 +251,7 @@ var handleIndexedDB = (function handleIndexedDB() {
   // get present id
   // use closure to keep userID
   function getPresentId() {
+    userID++;
     return userID;
   }
 
