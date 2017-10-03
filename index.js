@@ -1,13 +1,13 @@
 'use strict';
 // use module pattern
 var handleIndexedDB = (function handleIndexedDB() {
-  /* initial indexedDB functions */
 
-  // two private property
+  // 3 private property
+  var _dbResult;
+  var _key;
+  var _storeName;
 
-  var dbResult;
-  var userID;
-
+  // init indexedDB
   function init(dbConfig, callback) {
     // firstly inspect browser's support for indexedDB
     if (!window.indexedDB) {
@@ -15,66 +15,69 @@ var handleIndexedDB = (function handleIndexedDB() {
       return 0;
     }
     if (callback) {
-      openDB(dbConfig, callback);  // while it's ok, oepn it
+      _openDB(dbConfig, callback);  // while it's ok, oepn it
     }
 
     return 0;
   }
 
-  function openDB(dbConfig, callback) {
+
+  /* 3 private methods */
+
+  function _openDB(dbConfig, callback) {
     var request = indexedDB.open(dbConfig.name, dbConfig.version); // open indexedDB
 
     request.onerror = function error() {
-      console.log('fail to load indexedDB');
+      console.log('Pity, fail to load indexedDB');
     };
     request.onsuccess = function success(e) {
-      dbResult = e.target.result;
-      getId(callback);
+      _dbResult = e.target.result;
+      _storeName = dbConfig.storeName;
+      console.log(_storeName);
+      getPresentKey(callback);
     };
-
     // When you create a new database or increase the version number of an existing database 
     // (by specifying a higher version number than you did previously, when Opening a database
     request.onupgradeneeded = function schemaChanged(e) {
-      dbResult = e.target.result;
-      if (!dbResult.objectStoreNames.contains('user')) {
-        // set id as keyPath
-        var store = dbResult.createObjectStore('user', { keyPath: 'id', autoIncrement: true }); // 创建db
+      _dbResult = e.target.result;
+      if (!_dbResult.objectStoreNames.contains(_storeName)) {
+        // set dbConfig.key as keyPath
+        var store = _dbResult.createObjectStore(_storeName, { keyPath: dbConfig.key, autoIncrement: true }); // 创建db
       }
       // add a new db demo
       store.add(dbConfig.dataDemo);
     };
   }
 
-  /* two private method */
-
-  function handleTransaction(whetherWrite) {
+  function _handleTransaction(whetherWrite) {
     var transaction;
+
     if (whetherWrite) {
-      transaction = dbResult.transaction(['user'], 'readwrite');
+      transaction = _dbResult.transaction([_storeName], 'readwrite');
     } else {
-      transaction = dbResult.transaction(['user']);
+      transaction = _dbResult.transaction([_storeName]);
     }
-    return transaction.objectStore('user');
+
+    return transaction.objectStore(_storeName);
   }
 
-  function rangeToAll() {
+  function _rangeToAll() {
     return IDBKeyRange.lowerBound(0, true);
   }
 
-  // set now id value to userID (the private property) 
-
-  function getId(callback) {
-    var storeHander = handleTransaction(true);
-    var range = rangeToAll();
+  // set present key value to _key (the private property) 
+  function getPresentKey(callback) {
+    var storeHander = _handleTransaction(true);
+    var range = IDBKeyRange.lowerBound(0);
 
     storeHander.openCursor(range, 'next').onsuccess = function (e) {
       var cursor = e.target.result;
 
       if (cursor) {
         cursor.continue();
-        userID = cursor.value.id;
+        _key = cursor.value.id;
       } else {
-        console.log('now id is:' +  userID);
+        console.log('now key is:' +  _key);
         callback();
       }
     };
@@ -84,8 +87,8 @@ var handleIndexedDB = (function handleIndexedDB() {
   /* CRUD */
 
   // Create 
-  function createOneData(newData, callback, callbackParaArr) {
-    var storeHander = handleTransaction(true);
+  function add(newData, callback, callbackParaArr) {
+    var storeHander = _handleTransaction(true);
     var addOpt = storeHander.add(newData);
     addOpt.onerror = function error() {
       console.log('Pity, failed to add one data to indexedDB');
@@ -105,40 +108,40 @@ var handleIndexedDB = (function handleIndexedDB() {
   // Retrieve
 
   // retrieve one data
-  function retrieveOneData(index, callback, callbackParaArr) {
-    var storeHander = handleTransaction(false);
-    var getDataIndex = storeHander.get(index);  // get it by index
+  function get(key, callback, callbackParaArr) {
+    var storeHander = _handleTransaction(false);
+    var getDataKey = storeHander.get(key);  // get it by index
 
-    getDataIndex.onerror = function getDataIndexError() {
-      console.log('Pity, get data faild');
+    getDataKey.onerror = function getDataKeyError() {
+      console.log('Pity, get (key:' + key + '\')s data' + ' faild');
     };
-    getDataIndex.onsuccess = function getDataIndexSuccess() {
-      console.log('Great, get data succeed');
+    getDataKey.onsuccess = function getDataKeySuccess() {
+      console.log('Great, get (key:' + key + '\')s data succeed');
       if (!callbackParaArr) {
-        callback(getDataIndex.result);
+        callback(getDataKey.result);
       } else {
-        callbackParaArr.unshift(getDataIndex.result);
+        callbackParaArr.unshift(getDataKey.result);
         callback.apply(null, callbackParaArr);
       }
     };
   }
 
   // retrieve eligible data (boolean condition)
-  function retrieveDataWhetherDone(whether, key, callback, callbackParaArr) {
+  function getWhether(whether, condition, callback, callbackParaArr) {
     var dataArr = []; // use an array to storage eligible data
-    var storeHander = handleTransaction(true);
-    var range = rangeToAll();
+    var storeHander = _handleTransaction(true);
+    var range = _rangeToAll();
 
     storeHander.openCursor(range, 'next').onsuccess = function showWhetherDoneData(e) {
       var cursor = e.target.result;
 
       if (cursor) {
         if (whether) {
-          if (cursor.value[key]) {
+          if (cursor.value[condition]) {
             dataArr.push(cursor.value);
           }
         } else if (!whether) {
-          if (!cursor.value[key]) {
+          if (!cursor.value[condition]) {
             dataArr.push(cursor.value);
           }
         }
@@ -155,9 +158,9 @@ var handleIndexedDB = (function handleIndexedDB() {
   }
 
   // retrieve all
-  function retrieveAllData(callback, callbackParaArr) {
-    var storeHander = handleTransaction(true);
-    var range = rangeToAll();
+  function getAll(callback, callbackParaArr) {
+    var storeHander = _handleTransaction(true);
+    var range = _rangeToAll();
     var allDataArr = [];
 
     storeHander.openCursor(range, 'next').onsuccess = function getAllData(e) {
@@ -178,10 +181,8 @@ var handleIndexedDB = (function handleIndexedDB() {
   }
 
   // Update one
-  function updateOneDate(changedData, callback, callbackParaArr) {
-    var storeHander = handleTransaction(true);
-
-    console.log(changedData);
+  function update(changedData, callback, callbackParaArr) {
+    var storeHander = _handleTransaction(true);
     var putStore = storeHander.put(changedData);
     putStore.onerror = function putStoreError() {
       console.log('Pity, modify failed');
@@ -201,15 +202,15 @@ var handleIndexedDB = (function handleIndexedDB() {
   // Delete 
 
   // delete one
-  function deleteOneData(index, callback, callbackParaArr) {
-    var storeHander = handleTransaction(true);
-    var deleteOpt = storeHander.delete(index); // 将当前选中li的数据从数据库中删除
+  function deleteOne(key, callback, callbackParaArr) {
+    var storeHander = _handleTransaction(true);
+    var deleteOpt = storeHander.delete(key); // 将当前选中li的数据从数据库中删除
 
     deleteOpt.onerror = function error() {
-      console.log('delete:' + index + '~faild');
+      console.log('delete (key:' + key + '\')s value faild');
     };
     deleteOpt.onsuccess = function success() {
-      console.log('delete:' + index +  '~succeed');
+      console.log('delete (key: ' + key +  '\')s value succeed');
       if (callback) {
         if (!callbackParaArr) {
           callback();
@@ -221,9 +222,9 @@ var handleIndexedDB = (function handleIndexedDB() {
   }
 
   // delete all
-  function deleteAllData(callback, callbackParaArr) {
-    var storeHander = handleTransaction(true);
-    var range = rangeToAll();
+  function deleteAll(callback, callbackParaArr) {
+    var storeHander = _handleTransaction(true);
+    var range = _rangeToAll();
 
     storeHander.openCursor(range, 'next').onsuccess = function deleteData(e) {
       var cursor = e.target.result;
@@ -249,23 +250,23 @@ var handleIndexedDB = (function handleIndexedDB() {
   }
 
   // get present id
-  // use closure to keep userID
-  function getPresentId() {
-    userID++;
-    return userID;
+  // use closure to keep _key
+  function getKey() {
+    _key++;
+    return _key;
   }
 
   /* public interface */
   return {
     init: init,
-    createOneData: createOneData,
-    retrieveOneData: retrieveOneData,
-    retrieveDataWhetherDone: retrieveDataWhetherDone,
-    retrieveAllData: retrieveAllData,
-    updateOneDate: updateOneDate,
-    deleteOneData: deleteOneData,
-    deleteAllData: deleteAllData,
-    getPresentId: getPresentId
+    getKey: getKey,
+    add: add,
+    get: get,
+    getWhether: getWhether,
+    getAll: getAll,
+    update: update,
+    delete: deleteOne,
+    deleteAll: deleteAll
   };
 }());
 

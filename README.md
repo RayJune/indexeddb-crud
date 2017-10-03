@@ -29,7 +29,9 @@ myDB.init(dbConfig, callback);
 ```javascript
   var dbConfig = {  
     name: 'justToDo',
-    version: '1'
+    version: '1',
+    key: 'id',
+    storeName: 'user'
   };
   dbConfig.dataDemo = { 
     id: 0,
@@ -41,39 +43,41 @@ myDB.init(dbConfig, callback);
 
 * The callback is `compulsory`, which is used to initial your eventListeners (when indexedDB opened, it will be called)
 
-#### createOneData
+#### add
 
 ```javascript
-myDB.createOneData(newData, callback, [callbackParaArr]);
+myDB.add(newData, callback, [callbackParaArr]);
 ```
 * newData's structure should equally to your dbConfig.dataDemo.
 
-* the callback and callbackParaArr is `optional`, when createOneData succeed it will be called
+* the callback and callbackParaArr is `optional`, when add succeed it will be called
 
-#### retrieveOneData
+#### get
 
 ```javascript
-myDB.retrieveOneData(index, callback, [callbackParaArr]);
+myDB.get(key, callback, [callbackParaArr]);
 ```
 
-* the index should be a number, which matched to db's id
+* the key should be a number, which matched to db's id
 
-* the callback and callbackParaArr is `optional`, when retrieveOneData succeed it will be called
+* the callback and callbackParaArr is `optional`, when get succeed it will be called
 
-#### retrieveDataWhetherDone
+#### getWhether
 
 ```javascript
-myDB.retrieveDataWhetherDone(whether, key, callback, [callbackParaArr]);
+myDB.getWhether(whether, condition, callback, [callbackParaArr]);
 ```
 
 * whether's value is true or false
 
-* `key` should be a boolean-condition from myDB.config.demo, for example:
+* `condition` should be a boolean-condition from myDB.config.demo, for example:
 
 ```javascript
  var dbConfig = {  
     name: 'justToDo',
-    version: '1'
+    version: '1',
+    key: 'id',
+    storeName: 'user
   };
   dbConfig.dataDemo = { 
     id: 0,
@@ -82,61 +86,61 @@ myDB.retrieveDataWhetherDone(whether, key, callback, [callbackParaArr]);
     date: 0
   };
 
-myDB.retrieveDataWhetherDone('true', key, callback);
+myDB.getWhether('true', key, callback);
 ```
 
-*  the callback and callbackParaArr is `optional`, when retrieveDataWhetherDone succeed it will be called
+*  the callback and callbackParaArr is `optional`, when getWhether succeed it will be called
 
-#### retrieveAllData
+#### getAll
 
 ```javascript
-myDB.retrieveAllData(callback, [callbackParaArr]);
+myDB.getAll(callback, [callbackParaArr]);
 ```
 
-*  the callback and callbackParaArr is `optional`, when retrieveAllData succeed it will be called
+*  the callback and callbackParaArr is `optional`, when getAll succeed it will be called
 
-#### updateOneDate
+#### update
 
 ```javascript
-myDB.updateOneDate(changedData, callback, [callbackParaArr]);
+myDB.update(changedData, callback, [callbackParaArr]);
 ```
 
-* the callback and callbackParaArr is `optional`, when updateOneDate succeed it will be called
+* the callback and callbackParaArr is `optional`, when update succeed it will be called
 
-#### deleteOneData
+#### delete
 
 ```javascript
-myDB.deleteOneData(index, callback, [callbackParaArr]);
+myDB.delete(key, callback, [callbackParaArr]);
 ```
-* the index should be a number, the index should be a number, which matched to db's id
+* the key should be a number, the key should be a number, which matched to db's id
 
-* the callback and callbackParaArr is `optional`, when deleteOneData succeed it will be called
+* the callback and callbackParaArr is `optional`, when delete succeed it will be called
 
-#### deleteAllData
+#### deleteAll
 
 ```javascript
-myDB.deleteAllData(callback, [callbackParaArr]);
+myDB.deleteAll(callback, [callbackParaArr]);
 ```
-* the callback and callbackParaArr is `optional`, when deleteAllData succeed it will be called
+* the callback and callbackParaArr is `optional`, when deleteAll succeed it will be called
 
-#### getPresentId
+#### getKey
 
 ```javascript
-myDB.getPresentId();
+myDB.getKey();
 ```
 
-when you want to add a data to list, you will need it to your data.id
+when you want to add a data to list, you will need it to your data.id (auto ++ inside the function)
 
 for example:
 
 ```javascript
 var newNodeData = {
-      id: myDB.getPresentId()++,
+      id: myDB.getKey(),
       userEvent: 'do something',
       finished: false
     };
 
-myDB.createOneData(newNodeData);
+myDB.add(newNodeData);
 ```
 
 ## example
