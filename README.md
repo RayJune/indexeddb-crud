@@ -77,7 +77,7 @@ myDB.getWhether(whether, condition, callback, [callbackParaArr]);
     name: 'justToDo',
     version: '1',
     key: 'id',
-    storeName: 'user
+    storeName: 'user'
   };
   dbConfig.dataDemo = { 
     id: 0,
