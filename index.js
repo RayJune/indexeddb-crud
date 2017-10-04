@@ -27,13 +27,12 @@ var handleIndexedDB = (function handleIndexedDB() {
   function _openDB(dbConfig, callback) {
     var request = indexedDB.open(dbConfig.name, dbConfig.version); // open indexedDB
 
+    _storeName = dbConfig.storeName;
     request.onerror = function error() {
       console.log('Pity, fail to load indexedDB');
     };
     request.onsuccess = function success(e) {
       _dbResult = e.target.result;
-      _storeName = dbConfig.storeName;
-      console.log(_storeName);
       getPresentKey(callback);
     };
     // When you create a new database or increase the version number of an existing database 
@@ -184,6 +183,7 @@ var handleIndexedDB = (function handleIndexedDB() {
   function update(changedData, callback, callbackParaArr) {
     var storeHander = _handleTransaction(true);
     var putStore = storeHander.put(changedData);
+
     putStore.onerror = function putStoreError() {
       console.log('Pity, modify failed');
     };

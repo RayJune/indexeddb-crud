@@ -35,7 +35,7 @@ myDB.init(dbConfig, callback);
   };
   dbConfig.dataDemo = { 
     id: 0,
-    userEvent: 0,
+    event: 0,
     finished: true,
     date: 0
   };
@@ -73,18 +73,18 @@ myDB.getWhether(whether, condition, callback, [callbackParaArr]);
 * `condition` should be a boolean-condition from myDB.config.demo, for example:
 
 ```javascript
- var dbConfig = {  
-    name: 'justToDo',
-    version: '1',
-    key: 'id',
-    storeName: 'user'
-  };
-  dbConfig.dataDemo = { 
-    id: 0,
-    userEvent: 0,
-    finished: true,
-    date: 0
-  };
+var dbConfig = {  
+  name: 'JustToDo',
+  version: '1',
+  key: 'id',
+  storeName: 'user' 
+};
+dbConfig.dataDemo = { 
+  id: 0,
+  event: 0,
+  finished: true,
+  date: 0
+};
 
 myDB.getWhether('true', key, callback);
 ```
@@ -135,10 +135,10 @@ for example:
 
 ```javascript
 var newNodeData = {
-      id: myDB.getKey(),
-      userEvent: 'do something',
-      finished: false
-    };
+  id: myDB.getKey(),
+  event: 'do something',
+  inished: false
+};
 
 myDB.add(newNodeData);
 ```
