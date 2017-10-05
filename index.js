@@ -112,10 +112,10 @@ var handleIndexedDB = (function handleIndexedDB() {
     var getDataKey = storeHander.get(key);  // get it by index
 
     getDataKey.onerror = function getDataKeyError() {
-      console.log('Pity, get (key:' + key + '\'s) data' + ' faild');
+      console.log('Pity, get (key:' + key + '\')s data' + ' faild');
     };
     getDataKey.onsuccess = function getDataKeySuccess() {
-      console.log('Great, get (key:' + key + '\'s) data succeed');
+      console.log('Great, get (key:' + key + '\')s data succeed');
       if (!callbackParaArr) {
         callback(getDataKey.result);
       } else {
@@ -207,10 +207,10 @@ var handleIndexedDB = (function handleIndexedDB() {
     var deleteOpt = storeHander.delete(key); // 将当前选中li的数据从数据库中删除
 
     deleteOpt.onerror = function error() {
-      console.log('delete (key:' + key + '\'s) value faild');
+      console.log('delete (key:' + key + '\')s value faild');
     };
     deleteOpt.onsuccess = function success() {
-      console.log('delete (key: ' + key +  '\'s) value succeed');
+      console.log('delete (key: ' + key +  '\')s value succeed');
       if (callback) {
         if (!callbackParaArr) {
           callback();

@@ -1,14 +1,14 @@
 # indexedDB-CRUD
 
-indexedDB-CRUD packs obscure indexedDB CRUD methods to a really coder-friendly simple interface.
+indexedDB-CRUD packs obscure indexedDB CRUD methods to a really coder-friendly succinct interface.
 
-It supports a `fixed keypath: id` (number), and CRUE methods to easy-operate indexedDB.
+It supports a configurable key(number type), a storeObject to store your data and CRUE methods to operate indexedDB extremely easy.
 
 ## Installation
 
-npm i -D indexeddb-crud 
+npm install indexeddb-crud 
 
-## use
+## useage
 
 ### import
 
@@ -149,7 +149,7 @@ myDB.add(newNodeData);
 
 ## author
 
-[RayJune](http://rayjune.xyz/about): a CS university student from Fujian, China
+[RayJune](http://rayjune.xyz/about): a CS university student from Fuzhou, Fujian, China
 
 ## License
 
