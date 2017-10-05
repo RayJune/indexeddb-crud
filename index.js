@@ -1,7 +1,6 @@
 'use strict';
 // use module pattern
 var handleIndexedDB = (function handleIndexedDB() {
-
   // 3 private property
   var _dbResult;
   var _key;
@@ -145,13 +144,11 @@ var handleIndexedDB = (function handleIndexedDB() {
           }
         }
         cursor.continue();
-      } else if (callback) {
-        if (!callbackParaArr) {
-          callback(dataArr);  // put the eligible array to callback as parameter
-        } else {
-          callbackParaArr.unshift(dataArr);
-          callback.apply(null, callbackParaArr);
-        }
+      } else if (!callbackParaArr) {
+        callback(dataArr);  // put the eligible array to callback as parameter
+      } else {
+        callbackParaArr.unshift(dataArr);
+        callback.apply(null, callbackParaArr);
       }
     };
   }
@@ -168,13 +165,11 @@ var handleIndexedDB = (function handleIndexedDB() {
       if (cursor) {
         allDataArr.push(cursor.value);
         cursor.continue();
-      } else if (callback) {
-        if (!callbackParaArr) {
-          callback(allDataArr);
-        } else {
-          callbackParaArr.unshift(allDataArr);
-          callback.apply(null, callbackParaArr);
-        }
+      } else if (!callbackParaArr) {
+        callback(allDataArr);
+      } else {
+        callbackParaArr.unshift(allDataArr);
+        callback.apply(null, callbackParaArr);
       }
     };
   }
@@ -222,7 +217,7 @@ var handleIndexedDB = (function handleIndexedDB() {
   }
 
   // delete all
-  function deleteAll(callback, callbackParaArr) {
+  function clear(callback, callbackParaArr) {
     var storeHander = _handleTransaction(true);
     var range = _rangeToAll();
 
@@ -266,7 +261,7 @@ var handleIndexedDB = (function handleIndexedDB() {
     getAll: getAll,
     update: update,
     delete: deleteOne,
-    deleteAll: deleteAll
+    clear: clear
   };
 }());
 

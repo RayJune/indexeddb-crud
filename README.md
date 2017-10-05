@@ -6,7 +6,9 @@ It supports a configurable key(number type), a storeObject to store your data an
 
 ## Installation
 
+```javascript
 npm install indexeddb-crud 
+```
 
 ## useage
 
@@ -18,13 +20,9 @@ var myDB = require('indexeddb-crud');
 
 ### API
 
-#### init
+#### init(dbConfig, callback)
 
-```javascript
-myDB.init(dbConfig, callback);
-```
-
-* your dbConfig's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `id is compulsory`):
+* your dbConfig's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `you must have a key(number type)`, e.g., in this code key is id):
 
 ```javascript
   var dbConfig = {  
@@ -35,34 +33,64 @@ myDB.init(dbConfig, callback);
   };
   dbConfig.dataDemo = { 
     id: 0,
-    event: 0,
+    someEvent: 0,
     finished: true,
     date: 0
   };
 ```
 
-* The callback is `compulsory`, which is used to initial your eventListeners (when indexedDB opened, it will be called)
+* Attention the callback is `compulsory`, which is used to initial your eventListeners (when indexedDB opened, it will be called)
 
-#### add
+e.g.
 
 ```javascript
-myDB.add(newData, callback, [callbackParaArr]);
+function addEventListeners() {
+  querySelector('#test').addEventlistener('click', handleClick, false);
+}
+function handleClick() {
+  console.log('test');
+}
+
+myDB.init(dbConfig, addEventListeners);
 ```
-* newData's structure should equally to your dbConfig.dataDemo.
 
-* the callback and callbackParaArr is `optional`, when add succeed it will be called
-
-#### get
+#### getKey
 
 ```javascript
-myDB.get(key, callback, [callbackParaArr]);
+myDB.getKey();
+```
+
+You will need it in add().
+
+#### add(newData, callback?, [callbackParaArr]?)
+
+* newData's structure should match to your dbConfig.dataDemo.
+
+e.g.
+
+```javascript
+var newData = {
+  id: DB.getKey(),
+  someEvent: 'play soccer',
+  finished: false,
+  userDate: new Date()
+};
+myDB.add(newData);
+```
+
+#### get(key, callback, [callbackParaArr]?)
+
+```javascript
+function dosomething(data) {
+  console.log(data);
+}
+myDB.get(1, dosomething);
+// data's value
 ```
 
 * the key should be a number, which matched to db's id
 
-* the callback and callbackParaArr is `optional`, when get succeed it will be called
-
-#### getWhether
+#### getWhether (whether, condition, callback, [callbackParaArr]?)
 
 ```javascript
 myDB.getWhether(whether, condition, callback, [callbackParaArr]);
@@ -89,44 +117,41 @@ dbConfig.dataDemo = {
 myDB.getWhether('true', key, callback);
 ```
 
-*  the callback and callbackParaArr is `optional`, when getWhether succeed it will be called
-
-#### getAll
+#### getAll(callback, [callbackParaArr]?)
 
 ```javascript
-myDB.getAll(callback, [callbackParaArr]);
+function doSomething(dataArr) {
+  console.log(dataArr);
+}
+myDB.getAll(doSomething);
+// dataArr's value
 ```
 
 *  the callback and callbackParaArr is `optional`, when getAll succeed it will be called
 
-#### update
+#### update(changedData, callback?, [callbackParaArr]?)
 
 ```javascript
-myDB.update(changedData, callback, [callbackParaArr]);
+var changedData = {
+  id: 10,
+  someEvent: 'play soccer',
+  finished: true,
+  userDate: new Date()
+};
+myDB.update(changedData);
 ```
 
-* the callback and callbackParaArr is `optional`, when update succeed it will be called
-
-#### delete
+#### delete(key, callback?, [callbackParaArr]?)
 
 ```javascript
-myDB.delete(key, callback, [callbackParaArr]);
+myDB.delete(1);
 ```
-* the key should be a number, the key should be a number, which matched to db's id
+* the `key should be a number`, which matched to db's key.
 
-* the callback and callbackParaArr is `optional`, when delete succeed it will be called
-
-#### deleteAll
+#### clear(callback?, [callbackParaArr]?)
 
 ```javascript
-myDB.deleteAll(callback, [callbackParaArr]);
-```
-* the callback and callbackParaArr is `optional`, when deleteAll succeed it will be called
-
-#### getKey
-
-```javascript
-myDB.getKey();
+myDB.clear();
 ```
 
 when you want to add a data to list, you will need it to your data.id (auto ++ inside the function)
@@ -145,7 +170,7 @@ myDB.add(newNodeData);
 
 ## example
 
-[a simple todolist web-app, storage data to indexedDB (using indexedDB-CRUD)](https://github.com/RayJune/JustToDo): https://github.com/RayJune/JustToDo
+a simple todolist web-app, storage data in indexedDB (using indexeddb-crud): (https://github.com/RayJune/JustToDo): https://github.com/RayJune/JustToDo
 
 ## author
 
