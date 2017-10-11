@@ -26,7 +26,7 @@ var handleIndexedDB = (function handleIndexedDB() {
   function _openDB(dbConfig, callback) {
     var request = indexedDB.open(dbConfig.name, dbConfig.version); // open indexedDB
 
-    _storeName = dbConfig.storeName;
+    _storeName = dbConfig.storeName; // storage storeName
     request.onerror = function error() {
       console.log('Pity, fail to load indexedDB');
     };
@@ -84,10 +84,18 @@ var handleIndexedDB = (function handleIndexedDB() {
 
   /* CRUD */
 
+  // get present id
+  // use closure to keep _key, you will need it in add
+  function getKey() {
+    _key += 1;
+    return _key;
+  }
+
   // Create 
   function add(newData, callback, callbackParaArr) {
     var storeHander = _handleTransaction(true);
     var addOpt = storeHander.add(newData);
+
     addOpt.onerror = function error() {
       console.log('Pity, failed to add one data to indexedDB');
     };
@@ -216,7 +224,7 @@ var handleIndexedDB = (function handleIndexedDB() {
     };
   }
 
-  // delete all
+  // clear
   function clear(callback, callbackParaArr) {
     var storeHander = _handleTransaction(true);
     var range = _rangeToAll();
@@ -228,13 +236,13 @@ var handleIndexedDB = (function handleIndexedDB() {
       if (cursor) {
         requestDel = cursor.delete();
         requestDel.onsuccess = function success() {
-          console.log('Great, delete all data succeed');
         };
         requestDel.onerror = function error() {
           console.log('Pity, delete all data faild');
         };
         cursor.continue();
       } else if (callback) {
+        console.log('Great, clear succeed');
         if (!callbackParaArr) {
           callback();
         } else {
@@ -244,12 +252,6 @@ var handleIndexedDB = (function handleIndexedDB() {
     };
   }
 
-  // get present id
-  // use closure to keep _key
-  function getKey() {
-    _key++;
-    return _key;
-  }
 
   /* public interface */
   return {

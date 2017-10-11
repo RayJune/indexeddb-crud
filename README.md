@@ -39,7 +39,7 @@ var myDB = require('indexeddb-crud');
   };
 ```
 
-* Attention the callback is `compulsory`, which is used to initial your eventListeners (when indexedDB opened, it will be called)
+* Attention the callback is `required`, which is used to initial your eventListeners (when indexedDB opened, it will be called)
 
 e.g.
 
@@ -54,7 +54,7 @@ function handleClick() {
 myDB.init(dbConfig, addEventListeners);
 ```
 
-#### getKey
+#### getKey()
 
 ```javascript
 myDB.getKey();
