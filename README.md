@@ -7,7 +7,7 @@ It supports a configurable key(number type), a storeObject to store your data an
 ## Installation
 
 ```javascript
-npm install indexeddb-crud 
+npm install indexeddb-crud --save-dev
 ```
 
 ## useage
@@ -54,10 +54,10 @@ function handleClick() {
 myDB.init(dbConfig, addEventListeners);
 ```
 
-#### getKey()
+#### getNewDataKey()
 
 ```javascript
-myDB.getKey();
+myDB.getNewDataKey();
 ```
 
 You will need it in add().
@@ -70,7 +70,7 @@ e.g.
 
 ```javascript
 var newData = {
-  id: DB.getKey(),
+  id: DB.getNewDataKey(),
   someEvent: 'play soccer',
   finished: false,
   userDate: new Date()
@@ -160,7 +160,7 @@ for example:
 
 ```javascript
 var newNodeData = {
-  id: myDB.getKey(),
+  id: myDB.getNewDataKey(),
   event: 'do something',
   inished: false
 };
@@ -170,7 +170,7 @@ myDB.add(newNodeData);
 
 ## example
 
-a simple todolist web-app, storage data in indexedDB (using indexeddb-crud): (https://github.com/RayJune/JustToDo): https://github.com/RayJune/JustToDo
+a simple todolist web-app, storage data in indexedDB (use indexeddb-crud): (https://github.com/RayJune/JustToDo/blob/gh-pages/src/scripts/main.js): https://github.com/RayJune/JustToDo/blob/gh-pages/src/scripts/main.js
 
 ## author
 

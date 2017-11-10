@@ -1,6 +1,6 @@
 {
   "name": "indexeddb-crud",
-  "version": "1.2.2",
+  "version": "1.2.4",
   "description": "pack complex indexedDB CRUD methods to a friendly simple interface",
   "main": "index.js",
   "scripts": {
