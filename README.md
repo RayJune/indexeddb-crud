@@ -170,7 +170,7 @@ myDB.add(newNodeData);
 
 ## example
 
-a simple todolist web-app, storage data in indexedDB (use indexeddb-crud): (https://github.com/RayJune/JustToDo/blob/gh-pages/src/scripts/main.js): https://github.com/RayJune/JustToDo/blob/gh-pages/src/scripts/main.js
+a simple todolist web-app, storage data in indexedDB (use indexeddb-crud): https://github.com/RayJune/JustToDo/blob/gh-pages/src/scripts/main.js
 
 ## author
 

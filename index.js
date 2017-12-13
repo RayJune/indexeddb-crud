@@ -1,10 +1,12 @@
 'use strict';
 // use module pattern
 var indexedDBHandler = (function indexedDBHandler() {
-  // 3 private property
+  // 5 private property
   var _dbResult;
   var _presentKey;
   var _storeName;
+  var _dataDemoUseful;
+  var _dataDemoLen;
 
   // init indexedDB
   function init(dbConfig, callback) {
@@ -39,15 +41,41 @@ var indexedDBHandler = (function indexedDBHandler() {
     // (by specifying a higher version number than you did previously, when Opening a database
     request.onupgradeneeded = function schemaChanged(e) {
       var store;
+      var i;
+      var demo;
 
       _dbResult = e.target.result;
-      if (!_dbResult.objectStoreNames.contains(_storeName)) {
+      if (!(_dbResult.objectStoreNames.contains(_storeName))) {
         // set dbConfig.key as keyPath
-        store = _dbResult.createObjectStore(_storeName, { keyPath: dbConfig.key, autoIncrement: true }); // 创建db
+        store = _dbResult.createObjectStore(_storeName, { keyPath: dbConfig.key, autoIncrement: true });
+        if (!verifyDataDemo()) {
+          return 0;
+        }
+        demo = verifyDataDemo(dbConfig.dataDemo);
+        _dataDemoUseful = dbConfig.dataDemoUseful;
+        _dataDemoLen = demo.length;
+        // add demo to db
+        for (i = 0; i < _dataDemoLen; i++) {
+          store.add(demo[i]);
+        }
       }
-      // add a new db demo
-      store.add(dbConfig.dataDemo);
+      return 0;
     };
+  }
+
+  function verifyDataDemo(dataDemo) {
+    try {
+      var demo;
+
+      if (!(typeof demoType === 'object' && Object.prototype.toString.call(dataDemo) !== 'Function')) {
+        throw new Error('');
+      }
+      demo = JSON.parse(JSON.stringify(dataDemo));
+      return demo;
+    } catch (error) {
+      window.alert('Please input a JSON type dataDemo');
+      return false;
+    }
   }
 
   // set present key value to _presentKey (the private property) 
@@ -227,7 +255,10 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function _rangeToAll() {
-    return IDBKeyRange.lowerBound(0, true);
+    if (_dataDemoUseful) {
+      return IDBKeyRange.lowerBound(0);
+    }
+    return IDBKeyRange.lowerBound(_dataDemoLen - 1, true);
   }
 
   function _callbackHandler(callback, result, callbackParaArr) {
