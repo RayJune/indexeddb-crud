@@ -5,8 +5,8 @@ var indexedDBHandler = (function indexedDBHandler() {
   var _dbResult;
   var _presentKey;
   var _storeName;
-  var _dataDemoUseful;
-  var _dataDemoLen;
+  var _initialDataUseful;
+  var _initialDataLen;
 
   // init indexedDB
   function init(dbConfig, callback) {
@@ -16,70 +16,76 @@ var indexedDBHandler = (function indexedDBHandler() {
 
       return 0;
     }
-    if (callback) {
-      _openDB(dbConfig, callback);  // while it's ok, oepn it
-    }
+    callback ? _openDB(dbConfig, callback) : _openDB(dbConfig);
 
     return 0;
   }
-
-
-  /* 2 private methods */
 
   function _openDB(dbConfig, callback) {
     var request = indexedDB.open(dbConfig.name, dbConfig.version); // open indexedDB
 
     _storeName = dbConfig.storeName; // storage storeName
+    _initialDataLen = getLength(dbConfig.initialData);
+    console.log(_initialDataLen);
+    _initialDataUseful = dbConfig.initialDataUseful;
+
     request.onerror = function _openDBErrorHandler() {
       console.log('Pity, fail to load indexedDB');
     };
     request.onsuccess = function _openDBSuccessHandler(e) {
       _dbResult = e.target.result;
-      _getPresentKey(callback);
+      callback();
+      _getPresentKey();
     };
-    // When you create a new database or increase the version number of an existing database 
-    // (by specifying a higher version number than you did previously, when Opening a database
-    request.onupgradeneeded = function schemaChanged(e) {
-      var store;
+
+    // When you create a new database or increase the version number of an existing database
+    request.onupgradeneeded = function schemaUp(e) {
       var i;
-      var demo;
+      var store;
+      var initialData;
 
       _dbResult = e.target.result;
       if (!(_dbResult.objectStoreNames.contains(_storeName))) {
-        // set dbConfig.key as keyPath
         store = _dbResult.createObjectStore(_storeName, { keyPath: dbConfig.key, autoIncrement: true });
-        if (!verifyDataDemo()) {
-          return 0;
-        }
-        demo = verifyDataDemo(dbConfig.dataDemo);
-        _dataDemoUseful = dbConfig.dataDemoUseful;
-        _dataDemoLen = demo.length;
-        // add demo to db
-        for (i = 0; i < _dataDemoLen; i++) {
-          store.add(demo[i]);
+        initialData = getData(dbConfig.initialData);
+        console.log(initialData);
+        if (initialData) {
+          for (i = 0; i < _initialDataLen; i++) {
+            store.add(initialData[i]);
+            console.log(initialData[i]);
+          }
+          _presentKey += _initialDataLen - 1;
         }
       }
-      return 0;
     };
   }
 
-  function verifyDataDemo(dataDemo) {
-    try {
-      var demo;
+  function getData(initialData) {
+    var result;
 
-      if (!(typeof demoType === 'object' && Object.prototype.toString.call(dataDemo) !== 'Function')) {
-        throw new Error('');
-      }
-      demo = JSON.parse(JSON.stringify(dataDemo));
-      return demo;
+    try {
+      result = JSON.parse(JSON.stringify(initialData));
     } catch (error) {
-      window.alert('Please input a JSON type dataDemo');
-      return false;
+      window.alert('Please input JSON type initialData');
+
+      result = false;
+    } finally {
+      return result;
     }
   }
 
+  function getLength(initialData) {
+    if (initialData) {
+      if (initialData.length) {
+        return initialData.length;
+      }
+      return 1;
+    }
+    return 0;
+  }
+
   // set present key value to _presentKey (the private property) 
-  function _getPresentKey(callback) {
+  function _getPresentKey() {
     var storeHander = _transactionHandler(true);
     var range = IDBKeyRange.lowerBound(0);
 
@@ -91,7 +97,6 @@ var indexedDBHandler = (function indexedDBHandler() {
         _presentKey = cursor.value.id;
       } else {
         console.log('now key is:' +  _presentKey);
-        callback();
       }
     };
   }
@@ -204,7 +209,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   // delete one
   function deleteOne(key, callback, callbackParaArr) {
     var storeHander = _transactionHandler(true);
-    var deleteOpt = storeHander.delete(key); // 将当前选中li的数据从数据库中删除
+    var deleteOpt = storeHander.delete(key);
 
     deleteOpt.onerror = function deleteErrorHandler() {
       console.log('delete (key:' + key + '\')s value faild');
@@ -255,10 +260,11 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function _rangeToAll() {
-    if (_dataDemoUseful) {
+    if (_initialDataUseful) {
       return IDBKeyRange.lowerBound(0);
     }
-    return IDBKeyRange.lowerBound(_dataDemoLen - 1, true);
+    // console.log(_initialDataLen);
+    return IDBKeyRange.lowerBound(1 - 1, true);
   }
 
   function _callbackHandler(callback, result, callbackParaArr) {
