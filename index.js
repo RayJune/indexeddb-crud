@@ -2,39 +2,43 @@
 // use module pattern
 var indexedDBHandler = (function indexedDBHandler() {
   // 5 private property
-  var _dbResult;
-  var _presentKey;
+  var _openSuccessResult;
   var _storeName;
-  var _initialDataUseful;
-  var _initialDataLen;
+  var _configKey;
+  var _presentKey;
+  var _initialJSONData;
+  var _initialJSONDataUseful;
+  var _initialJSONDataLen;
 
   // init indexedDB
-  function init(dbConfig, callback) {
+  function init(config, successCallback) {
     // firstly inspect browser's support for indexedDB
     if (!window.indexedDB) {
       window.alert('Your browser doesn\'t support a stable version of IndexedDB. Such and such feature will not be available.');
 
       return 0;
     }
-    callback ? _openDB(dbConfig, callback) : _openDB(dbConfig);
+    successCallback ? _openDB(config, successCallback) : _openDB(config);
 
     return 0;
   }
 
-  function _openDB(dbConfig, callback) {
-    var request = indexedDB.open(dbConfig.name, dbConfig.version); // open indexedDB
+  function _openDB(config, successCallback) {
+    var request = indexedDB.open(config.name, config.version); // open indexedDB
 
-    _storeName = dbConfig.storeName; // storage storeName
-    _initialDataLen = getLength(dbConfig.initialData);
-    console.log(_initialDataLen);
-    _initialDataUseful = dbConfig.initialDataUseful;
+    // OK
+    _storeName = config.storeName; // storage storeName
+    _configKey = config.key;
+    _initialJSONData = _getJSONData(config.initialData);
+    _initialJSONDataLen = _getinitialJSONDataLen(_initialJSONData);
+    _initialJSONDataUseful = config.initialJSONDataUseful;
 
-    request.onerror = function _openDBErrorHandler() {
+    request.onerror = function _openDBError() {
       console.log('Pity, fail to load indexedDB');
     };
-    request.onsuccess = function _openDBSuccessHandler(e) {
-      _dbResult = e.target.result;
-      callback();
+    request.onsuccess = function _openDBSuccess(e) {
+      _openSuccessResult = e.target.result;
+      successCallback();
       _getPresentKey();
     };
 
@@ -42,42 +46,46 @@ var indexedDBHandler = (function indexedDBHandler() {
     request.onupgradeneeded = function schemaUp(e) {
       var i;
       var store;
-      var initialData;
-
-      _dbResult = e.target.result;
-      if (!(_dbResult.objectStoreNames.contains(_storeName))) {
-        store = _dbResult.createObjectStore(_storeName, { keyPath: dbConfig.key, autoIncrement: true });
-        initialData = getData(dbConfig.initialData);
-        console.log(initialData);
-        if (initialData) {
-          for (i = 0; i < _initialDataLen; i++) {
-            store.add(initialData[i]);
-            console.log(initialData[i]);
+      var initialJSONData;
+      console.log(_initialJSONData);
+      console.log(_initialJSONDataLen);
+      _openSuccessResult = e.target.result;
+      console.log('scheme up');
+      if (!(_openSuccessResult.objectStoreNames.contains(_storeName))) {
+        store = _openSuccessResult.createObjectStore(_storeName, { keyPath: _configKey, autoIncrement: true });
+        console.log(initialJSONData);
+        console.log(_initialJSONDataLen);
+        if (initialJSONData) {
+          for (i = 0; i < _initialJSONDataLen; i++) {
+            store.add(initialJSONData[i]);
+            console.log(initialJSONData[i]);
           }
-          _presentKey += _initialDataLen - 1;
+          _presentKey = _presentKey + _initialJSONDataLen - 1;
+          console.log(_presentKey);
+          _getPresentKey();
         }
       }
     };
   }
 
-  function getData(initialData) {
+  function _getJSONData(rawData) {
     var result;
 
     try {
-      result = JSON.parse(JSON.stringify(initialData));
+      // OK
+      result = JSON.parse(JSON.stringify(rawData));
     } catch (error) {
-      window.alert('Please input JSON type initialData');
-
+      window.alert('Please set correct JSON type :>');
       result = false;
     } finally {
       return result;
     }
   }
 
-  function getLength(initialData) {
-    if (initialData) {
-      if (initialData.length) {
-        return initialData.length;
+  function _getinitialJSONDataLen(JSONData) {
+    if (JSONData) {
+      if (JSONData.length) {
+        return JSONData.length;
       }
       return 1;
     }
@@ -86,7 +94,7 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   // set present key value to _presentKey (the private property) 
   function _getPresentKey() {
-    var storeHander = _transactionHandler(true);
+    var storeHander = _transactionGenerator(true);
     var range = IDBKeyRange.lowerBound(0);
 
     storeHander.openCursor(range, 'next').onsuccess = function _getPresentKeyHandler(e) {
@@ -96,25 +104,25 @@ var indexedDBHandler = (function indexedDBHandler() {
         cursor.continue();
         _presentKey = cursor.value.id;
       } else {
-        console.log('now key is:' +  _presentKey);
+        if (!_presentKey) {
+          _presentKey = 0;
+        }
+        console.log('now key is:' +  _presentKey); // initial value is 0
       }
     };
   }
 
   /* CRUD */
 
-  // get present id
   // use closure to keep _presentKey, you will need it in add
-  function getNewDataKey() {
+  function getNewKey() {
     _presentKey += 1;
 
     return _presentKey;
   }
 
-  // Create 
-
-  function add(newData, callback, callbackParaArr) {
-    var storeHander = _transactionHandler(true);
+  function addItem(newData, successCallback, successCallbackArrayParameter) {
+    var storeHander = _transactionGenerator(true);
     var addOpt = storeHander.add(newData);
 
     addOpt.onerror = function error() {
@@ -122,35 +130,32 @@ var indexedDBHandler = (function indexedDBHandler() {
     };
     addOpt.onsuccess = function success() {
       console.log('Bravo, success to add one data to indexedDB');
-      if (callback) { // if has callback been input, execute it 
-        _callbackHandler(callback, newData, callbackParaArr);
+      if (successCallback) { // if has callback been input, execute it 
+        _successCallbackHandler(successCallback, newData, successCallbackArrayParameter);
       }
     };
   }
 
-  // Retrieve
-
-  // retrieve one data
-  function get(key, callback, callbackParaArr) {
-    var storeHander = _transactionHandler(false);
+  function getItem(key, successCallback, successCallbackArrayParameter) {
+    var storeHander = _transactionGenerator(false);
     var getDataKey = storeHander.get(key);  // get it by index
 
-    getDataKey.onerror = function getDataErrorHandler() {
+    getDataKey.onerror = function getDataError() {
       console.log('Pity, get (key:' + key + '\')s data' + ' faild');
     };
-    getDataKey.onsuccess = function getDataSuccessHandler() {
+    getDataKey.onsuccess = function getDataSuccess() {
       console.log('Great, get (key:' + key + '\')s data succeed');
-      _callbackHandler(callback, getDataKey.result, callbackParaArr);
+      _successCallbackHandler(successCallback, getDataKey.result, successCallbackArrayParameter);
     };
   }
 
   // retrieve eligible data (boolean condition)
-  function getWhether(whether, condition, callback, callbackParaArr) {
-    var storeHander = _transactionHandler(true);
-    var range = _rangeToAll();
+  function getConditionItem(condition, whether, successCallback, successCallbackArrayParameter) {
+    var storeHander = _transactionGenerator(true);
+    var range = _rangeGenerator();
     var result = []; // use an array to storage eligible data
 
-    storeHander.openCursor(range, 'next').onsuccess = function getWhetherHandler(e) {
+    storeHander.openCursor(range, 'next').onsuccess = function getConditionItemHandler(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -165,15 +170,14 @@ var indexedDBHandler = (function indexedDBHandler() {
         }
         cursor.continue();
       } else {
-        _callbackHandler(callback, result, callbackParaArr);
+        _successCallbackHandler(successCallback, result, successCallbackArrayParameter);
       }
     };
   }
 
-  // retrieve all
-  function getAll(callback, callbackParaArr) {
-    var storeHander = _transactionHandler(true);
-    var range = _rangeToAll();
+  function getAll(successCallback, successCallbackArrayParameter) {
+    var storeHander = _transactionGenerator(true);
+    var range = _rangeGenerator();
     var result = [];
 
     storeHander.openCursor(range, 'next').onsuccess = function getAllHandler(e) {
@@ -183,49 +187,46 @@ var indexedDBHandler = (function indexedDBHandler() {
         result.push(cursor.value);
         cursor.continue();
       } else {
-        _callbackHandler(callback, result, callbackParaArr);
+        _successCallbackHandler(successCallback, result, successCallbackArrayParameter);
       }
     };
   }
 
-  // Update one
-  function update(newData, callback, callbackParaArr) {
-    var storeHander = _transactionHandler(true);
+  // update one
+  function updateItem(newData, successCallback, successCallbackArrayParameter) {
+    // #TODO: update part
+    var storeHander = _transactionGenerator(true);
     var putStore = storeHander.put(newData);
 
-    putStore.onerror = function updateErrorHandler() {
+    putStore.onerror = function updateError() {
       console.log('Pity, modify failed');
     };
-    putStore.onsuccess = function updateSuccessHandler() {
+    putStore.onsuccess = function updateSuccess() {
       console.log('Aha, modify succeed');
-      if (callback) {
-        _callbackHandler(callback, newData, callbackParaArr);
+      if (successCallback) {
+        _successCallbackHandler(successCallback, newData, successCallbackArrayParameter);
       }
     };
   }
 
-  // Delete 
-
-  // delete one
-  function deleteOne(key, callback, callbackParaArr) {
-    var storeHander = _transactionHandler(true);
+  function deleteOne(key, successCallback, successCallbackArrayParameter) {
+    var storeHander = _transactionGenerator(true);
     var deleteOpt = storeHander.delete(key);
 
-    deleteOpt.onerror = function deleteErrorHandler() {
+    deleteOpt.onerror = function deleteError() {
       console.log('delete (key:' + key + '\')s value faild');
     };
-    deleteOpt.onsuccess = function deleteSuccessHandler() {
+    deleteOpt.onsuccess = function deleteSuccess() {
       console.log('delete (key: ' + key +  '\')s value succeed');
-      if (callback) {
-        _callbackHandler(callback, key, callbackParaArr);
+      if (successCallback) {
+        _successCallbackHandler(successCallback, key, successCallbackArrayParameter);
       }
     };
   }
 
-  // clear
-  function clear(callback, callbackParaArr) {
-    var storeHander = _transactionHandler(true);
-    var range = _rangeToAll();
+  function clear(successCallback, successCallbackArrayParameter) {
+    var storeHander = _transactionGenerator(true);
+    var range = _rangeGenerator();
 
     storeHander.openCursor(range, 'next').onsuccess = function clearHandler(e) {
       var cursor = e.target.result;
@@ -239,53 +240,54 @@ var indexedDBHandler = (function indexedDBHandler() {
           console.log('Pity, delete all data faild');
         };
         cursor.continue();
-      } else if (callback) {
-        _callbackHandler(callback, 'all data', callbackParaArr);
+      } else if (successCallback) {
+        _successCallbackHandler(successCallback, 'all data', successCallbackArrayParameter);
       }
     };
   }
 
   /* 3 private methods */
 
-  function _transactionHandler(whetherWrite) {
+  function _transactionGenerator(whetherWrite) {
     var transaction;
 
     if (whetherWrite) {
-      transaction = _dbResult.transaction([_storeName], 'readwrite');
+      transaction = _openSuccessResult.transaction([_storeName], 'readwrite');
     } else {
-      transaction = _dbResult.transaction([_storeName]);
+      transaction = _openSuccessResult.transaction([_storeName]);
     }
 
     return transaction.objectStore(_storeName);
   }
 
-  function _rangeToAll() {
-    if (_initialDataUseful) {
+  function _rangeGenerator() {
+    if (_initialJSONDataUseful) {
       return IDBKeyRange.lowerBound(0);
     }
-    // console.log(_initialDataLen);
+    // #FIXME: 
+    // console.log(_initialJSONDataLen);
     return IDBKeyRange.lowerBound(1 - 1, true);
   }
 
-  function _callbackHandler(callback, result, callbackParaArr) {
-    if (callbackParaArr) {
-      callbackParaArr.unshift(result);
-      callback.apply(null, callbackParaArr);
+  function _successCallbackHandler(successCallback, result, successCallbackArrayParameter) {
+    if (successCallbackArrayParameter) {
+      successCallbackArrayParameter.unshift(result);
+      successCallback.apply(null, successCallbackArrayParameter);
     } else {
-      callback(result);
+      successCallback(result);
     }
   }
 
   /* public interface */
   return {
     init: init,
-    getNewDataKey: getNewDataKey,
-    add: add,
-    get: get,
-    getWhether: getWhether,
+    getNewKey: getNewKey,
+    addItem: addItem,
+    getItem: getItem,
+    getConditionItem: getConditionItem,
     getAll: getAll,
-    update: update,
-    delete: deleteOne,
+    updateItem: updateItem,
+    removeItem: deleteOne,
     clear: clear
   };
 }());

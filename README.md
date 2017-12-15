@@ -15,31 +15,32 @@ npm install indexeddb-crud --save-dev
 ### import
 
 ```javascript
-var myDB = require('indexeddb-crud');
+var DB = require('indexeddb-crud');
 ```
 
 ### API
 
-#### init(dbConfig, callback)
+#### init(config, successCallback)
 
-* your dbConfig's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `you must have a key(number type)`, e.g., in this code key is id):
+* your config's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `you must have a key(number type)`, e.g., in this code key is id):
 
 ```javascript
-  var dbConfig = {  
+  var config = {  
     name: 'justToDo',
     version: '1',
     key: 'id',
-    storeName: 'user'
-  };
-  dbConfig.dataDemo = { 
-    id: 0,
-    someEvent: 0,
-    finished: true,
-    date: 0
+    storeName: 'user',
+    initialData = { 
+      id: 0,
+      someEvent: 0,
+      finished: true,
+      date: 0
+    },
+    initialDataUseful = false
   };
 ```
 
-* Attention the callback is `required`, which is used to initial your eventListeners (when indexedDB opened, it will be called)
+* Attention the successCallback is `required`, which is used to initial your eventListeners (when indexedDB opened, it will be called)
 
 e.g.
 
@@ -51,85 +52,85 @@ function handleClick() {
   console.log('test');
 }
 
-myDB.init(dbConfig, addEventListeners);
+DB.init(config, addEventListeners);
 ```
 
-#### getNewDataKey()
+#### getNewKey()
 
 ```javascript
-myDB.getNewDataKey();
+DB.getNewKey();
 ```
 
-You will need it in add().
+You will need it in addItem().
 
-#### add(newData, callback?, [callbackParaArr]?)
+#### addItem(newData, successCallback?, [successCallbackParaArr]?)
 
-* newData's structure should match to your dbConfig.dataDemo.
+* newData's structure should match to your config.dataDemo.
 
 e.g.
 
 ```javascript
 var newData = {
-  id: DB.getNewDataKey(),
+  id: DB.getNewKey(),
   someEvent: 'play soccer',
   finished: false,
   userDate: new Date()
 };
-myDB.add(newData);
+DB.addItem(newData);
 ```
 
-#### get(key, callback, [callbackParaArr]?)
+#### get(key, successCallback, [successCallbackParaArr]?)
 
 ```javascript
 function dosomething(data) {
   console.log(data);
 }
-myDB.get(1, dosomething);
+DB.get(1, dosomething);
 // data's value
 ```
 
 * the key should be a number, which matched to db's id
 
-#### getWhether (whether, condition, callback, [callbackParaArr]?)
+#### getConditionItem (condition, whether, successCallback, [successCallbackParaArr]?)
 
 ```javascript
-myDB.getWhether(whether, condition, callback, [callbackParaArr]);
+DB.getConditionItem(whether, condition, successCallback, [successCallbackParaArr]);
 ```
 
 * whether's value is true or false
 
-* `condition` should be a boolean-condition from myDB.config.demo, for example:
+* `condition` should be a boolean-condition from DB.config.demo, for example:
 
 ```javascript
-var dbConfig = {  
+var config = {  
   name: 'JustToDo',
   version: '1',
   key: 'id',
   storeName: 'user' 
 };
-dbConfig.dataDemo = { 
+config.dataDemo = { 
   id: 0,
   event: 0,
   finished: true,
   date: 0
 };
 
-myDB.getWhether('true', key, callback);
+DB.getConditionItem('true', key, successCallback);
 ```
 
-#### getAll(callback, [callbackParaArr]?)
+#### getAll(successCallback, [successCallbackParaArr]?)
 
 ```javascript
 function doSomething(dataArr) {
   console.log(dataArr);
 }
-myDB.getAll(doSomething);
+DB.getAll(doSomething);
 // dataArr's value
 ```
 
-*  the callback and callbackParaArr is `optional`, when getAll succeed it will be called
+*  the successCallback and successCallbackParaArr is `optional`, when getAll succeed it will be called
 
-#### update(changedData, callback?, [callbackParaArr]?)
+#### updateItem(data, successCallback?, [successCallbackParaArr]?)
 
 ```javascript
 var changedData = {
@@ -138,20 +139,20 @@ var changedData = {
   finished: true,
   userDate: new Date()
 };
-myDB.update(changedData);
+DB.updateItem(changedData);
 ```
 
-#### delete(key, callback?, [callbackParaArr]?)
+#### removeItem(key, successCallback?, [successCallbackParaArr]?)
 
 ```javascript
-myDB.delete(1);
+DB.removeItem(1);
 ```
 * the `key should be a number`, which matched to db's key.
 
-#### clear(callback?, [callbackParaArr]?)
+#### clear(successCallback?, [successCallbackParaArr]?)
 
 ```javascript
-myDB.clear();
+DB.clear();
 ```
 
 when you want to add a data to list, you will need it to your data.id (auto ++ inside the function)
@@ -160,12 +161,12 @@ for example:
 
 ```javascript
 var newNodeData = {
-  id: myDB.getNewDataKey(),
+  id: DB.getNewKey(),
   event: 'do something',
   inished: false
 };
 
-myDB.add(newNodeData);
+DB.addItem(newNodeData);
 ```
 
 ## example
