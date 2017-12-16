@@ -2,7 +2,7 @@
 // use module pattern
 var indexedDBHandler = (function indexedDBHandler() {
   // 5 private property
-  var _openSuccessResult;
+  var _db;
   var _storeName;
   var _configKey;
   var _presentKey;
@@ -18,7 +18,7 @@ var indexedDBHandler = (function indexedDBHandler() {
 
       return 0;
     }
-    successCallback ? _openDB(config, successCallback) : _openDB(config);
+    _openDB(config, successCallback);
 
     return 0;
   }
@@ -37,7 +37,11 @@ var indexedDBHandler = (function indexedDBHandler() {
       console.log('Pity, fail to load indexedDB');
     };
     request.onsuccess = function _openDBSuccess(e) {
-      _openSuccessResult = e.target.result;
+      _db = e.target.result;
+      _db.onerror = function errorHandler(e) {
+        // Generic error handler for all errors targeted at this database's requests
+        window.alert('Database error: ' + e.target.errorCode);
+      };
       successCallback();
       _getPresentKey();
     };
@@ -49,10 +53,10 @@ var indexedDBHandler = (function indexedDBHandler() {
       var initialJSONData;
       console.log(_initialJSONData);
       console.log(_initialJSONDataLen);
-      _openSuccessResult = e.target.result;
+      _db = e.target.result;
       console.log('scheme up');
-      if (!(_openSuccessResult.objectStoreNames.contains(_storeName))) {
-        store = _openSuccessResult.createObjectStore(_storeName, { keyPath: _configKey, autoIncrement: true });
+      if (!(_db.objectStoreNames.contains(_storeName))) {
+        store = _db.createObjectStore(_storeName, { keyPath: _configKey, autoIncrement: true });
         console.log(initialJSONData);
         console.log(_initialJSONDataLen);
         if (initialJSONData) {
@@ -125,9 +129,6 @@ var indexedDBHandler = (function indexedDBHandler() {
     var storeHander = _transactionGenerator(true);
     var addOpt = storeHander.add(newData);
 
-    addOpt.onerror = function error() {
-      console.log('Pity, failed to add one data to indexedDB');
-    };
     addOpt.onsuccess = function success() {
       console.log('Bravo, success to add one data to indexedDB');
       if (successCallback) { // if has callback been input, execute it 
@@ -140,9 +141,6 @@ var indexedDBHandler = (function indexedDBHandler() {
     var storeHander = _transactionGenerator(false);
     var getDataKey = storeHander.get(key);  // get it by index
 
-    getDataKey.onerror = function getDataError() {
-      console.log('Pity, get (key:' + key + '\')s data' + ' faild');
-    };
     getDataKey.onsuccess = function getDataSuccess() {
       console.log('Great, get (key:' + key + '\')s data succeed');
       _successCallbackHandler(successCallback, getDataKey.result, successCallbackArrayParameter);
@@ -198,9 +196,6 @@ var indexedDBHandler = (function indexedDBHandler() {
     var storeHander = _transactionGenerator(true);
     var putStore = storeHander.put(newData);
 
-    putStore.onerror = function updateError() {
-      console.log('Pity, modify failed');
-    };
     putStore.onsuccess = function updateSuccess() {
       console.log('Aha, modify succeed');
       if (successCallback) {
@@ -213,9 +208,6 @@ var indexedDBHandler = (function indexedDBHandler() {
     var storeHander = _transactionGenerator(true);
     var deleteOpt = storeHander.delete(key);
 
-    deleteOpt.onerror = function deleteError() {
-      console.log('delete (key:' + key + '\')s value faild');
-    };
     deleteOpt.onsuccess = function deleteSuccess() {
       console.log('delete (key: ' + key +  '\')s value succeed');
       if (successCallback) {
@@ -236,9 +228,6 @@ var indexedDBHandler = (function indexedDBHandler() {
         requestDel = cursor.delete();
         requestDel.onsuccess = function success() {
         };
-        requestDel.onerror = function error() {
-          console.log('Pity, delete all data faild');
-        };
         cursor.continue();
       } else if (successCallback) {
         _successCallbackHandler(successCallback, 'all data', successCallbackArrayParameter);
@@ -252,9 +241,9 @@ var indexedDBHandler = (function indexedDBHandler() {
     var transaction;
 
     if (whetherWrite) {
-      transaction = _openSuccessResult.transaction([_storeName], 'readwrite');
+      transaction = _db.transaction([_storeName], 'readwrite');
     } else {
-      transaction = _openSuccessResult.transaction([_storeName]);
+      transaction = _db.transaction([_storeName]);
     }
 
     return transaction.objectStore(_storeName);

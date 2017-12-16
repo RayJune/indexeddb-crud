@@ -7,7 +7,7 @@ It supports a configurable key(number type), a storeObject to store your data an
 ## Installation
 
 ```javascript
-npm install indexeddb-crud --save-dev
+npm install indexeddb-crud --save
 ```
 
 ## useage
@@ -63,20 +63,20 @@ DB.getNewKey();
 
 You will need it in addItem().
 
-#### addItem(newData, successCallback?, [successCallbackParaArr]?)
+#### addItem(data, successCallback?, [successCallbackParaArr]?)
 
-* newData's structure should match to your config.dataDemo.
+* data's structure should match to your config.dataDemo.
 
 e.g.
 
 ```javascript
-var newData = {
+var data = {
   id: DB.getNewKey(),
   someEvent: 'play soccer',
   finished: false,
   userDate: new Date()
 };
-DB.addItem(newData);
+DB.addItem(data);
 ```
 
 #### get(key, successCallback, [successCallbackParaArr]?)
@@ -102,18 +102,19 @@ DB.getConditionItem(whether, condition, successCallback, [successCallbackParaArr
 * `condition` should be a boolean-condition from DB.config.demo, for example:
 
 ```javascript
-var config = {  
-  name: 'JustToDo',
-  version: '1',
-  key: 'id',
-  storeName: 'user' 
-};
-config.dataDemo = { 
-  id: 0,
-  event: 0,
-  finished: true,
-  date: 0
-};
+  var dbConfig = {
+    name: 'JustToDo',
+    version: '11',
+    key: 'id',
+    storeName: 'list',
+    initialData: [{
+      id: 0,
+      event: 0,
+      finished: true,
+      date: 0
+    }],
+    initialDataUseful: false
+  };
 
 DB.getConditionItem('true', key, successCallback);
 ```
