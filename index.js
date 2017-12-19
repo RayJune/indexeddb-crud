@@ -11,19 +11,19 @@ var indexedDBHandler = (function indexedDBHandler() {
   var _initialJSONDataLen;
 
   // init indexedDB
-  function init(config, successCallback) {
+  function init(config, successCallback, failCallback) {
     // firstly inspect browser's support for indexedDB
     if (!window.indexedDB) {
-      window.alert('Your browser doesn\'t support a stable version of IndexedDB. Such and such feature will not be available.');
-
+      window.alert('Your browser doesn\'t support a stable version of IndexedDB. We will offer you the without indexedDB mode');
+      failCallback();
       return 0;
     }
-    _openDB(config, successCallback);
+    _openDB(config, successCallback, failCallback);
 
     return 0;
   }
 
-  function _openDB(config, successCallback) {
+  function _openDB(config, successCallback, failCallback) {
     var request = indexedDB.open(config.name, config.version); // open indexedDB
 
     // OK
@@ -34,7 +34,8 @@ var indexedDBHandler = (function indexedDBHandler() {
     _initialJSONDataUseful = config.initialJSONDataUseful;
 
     request.onerror = function _openDBError() {
-      console.log('Pity, fail to load indexedDB');
+      console.log('Pity, fail to load indexedDB. We will offer you the without indexedDB mode');
+      failCallback();
     };
     request.onsuccess = function _openDBSuccess(e) {
       _db = e.target.result;

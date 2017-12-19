@@ -1,6 +1,6 @@
 {
   "name": "indexeddb-crud",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "pack complex indexedDB CRUD methods to a friendly simple interface",
   "main": "index.js",
   "scripts": {
@@ -11,9 +11,9 @@
     "url": "git+https://github.com/RayJune/indexeddb-crud.git"
   },
   "keywords": [
-    "indexeddb",
+    "indexedDB",
     "crud",
-    "indexedDB"
+    "indexeddb"
   ],
   "author": "RayJune",
   "license": "MIT",
