@@ -1,9 +1,8 @@
 'use strict';
-// use module pattern
 var indexedDBHandler = (function indexedDBHandler() {
-  // 5 private property
   var _db;
   var _storeName;
+  var _presentKey;
 
   // init indexedDB
   function init(config, successCallback, failCallback) {
@@ -31,7 +30,7 @@ var indexedDBHandler = (function indexedDBHandler() {
     request.onsuccess = function _openDBSuccess(e) {
       _db = e.target.result;
       successCallback();
-      // _getPresentKey();
+      _getPresentKey();
     };
 
     // Creating or updating the version of the database
@@ -60,6 +59,31 @@ var indexedDBHandler = (function indexedDBHandler() {
     };
   }
 
+  // set present key value to _presentKey (the private property)
+  function _getPresentKey() {
+    var storeHandler = _transactionGenerator(true);
+    var range = IDBKeyRange.lowerBound(0);
+
+    storeHandler.openCursor(range, 'next').onsuccess = function _getPresentKeyHandler(e) {
+      var cursor = e.target.result;
+
+      if (cursor) {
+        cursor.continue();
+        _presentKey = cursor.value.id;
+      } else {
+        if (!_presentKey) {
+          _presentKey = 0;
+        }
+        console.log('now key is:' +  _presentKey); // initial value is 0
+      }
+    };
+  }
+
+  function getNewKey() {
+    _presentKey += 1;
+
+    return _presentKey;
+  }
 
   /* CRUD */
   function addItem(newData, successCallback, successCallbackArrayParameter) {
@@ -68,6 +92,7 @@ var indexedDBHandler = (function indexedDBHandler() {
 
     addOpt.onsuccess = function success() {
       console.log('Bravo, success to add one data to indexedDB');
+      _presentKey += 1;
       if (successCallback) { // if has callback been input, execute it
         _successCallbackHandler(successCallback, newData, successCallbackArrayParameter);
       }
@@ -87,7 +112,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   // retrieve eligible data (boolean condition)
   function getConditionItem(condition, whether, successCallback, successCallbackArrayParameter) {
     var storeHander = _transactionGenerator(true);
-    var range = _rangeGenerator();
+    var range = _rangeToAll();
     var result = []; // use an array to storage eligible data
 
     storeHander.openCursor(range, 'next').onsuccess = function getConditionItemHandler(e) {
@@ -112,7 +137,7 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   function getAll(successCallback, successCallbackArrayParameter) {
     var storeHander = _transactionGenerator(true);
-    var range = _rangeGenerator();
+    var range = _rangeToAll();
     var result = [];
 
     storeHander.openCursor(range, 'next').onsuccess = function getAllHandler(e) {
@@ -155,7 +180,7 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   function clear(successCallback, successCallbackArrayParameter) {
     var storeHander = _transactionGenerator(true);
-    var range = _rangeGenerator();
+    var range = _rangeToAll();
 
     storeHander.openCursor(range, 'next').onsuccess = function clearHandler(e) {
       var cursor = e.target.result;
@@ -172,7 +197,6 @@ var indexedDBHandler = (function indexedDBHandler() {
     };
   }
 
-  /* 3 private methods */
 
   function _transactionGenerator(whetherWrite) {
     var transaction;
@@ -186,12 +210,7 @@ var indexedDBHandler = (function indexedDBHandler() {
     return transaction.objectStore(_storeName);
   }
 
-  function _rangeGenerator() {
-    // if (_initialJSONDataUseful) {
-    //   return IDBKeyRange.lowerBound(0);
-    // }
-    // #FIXME:
-    // console.log(_initialJSONDataLen);
+  function _rangeToAll() {
     return IDBKeyRange.lowerBound(0, true);
   }
 
@@ -207,6 +226,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   /* public interface */
   return {
     init: init,
+    getNewKey: getNewKey,
     addItem: addItem,
     getItem: getItem,
     getConditionItem: getConditionItem,
