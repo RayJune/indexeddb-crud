@@ -4,6 +4,8 @@ indexedDB-CRUD packs obscure indexedDB CRUD methods to a really coder-friendly s
 
 It supports a configurable key(number type), a storeObject to store your data and CRUE methods to operate indexedDB extremely easy.
 
+This object store can only hold JavaScript objects. The objects must have a property with the same name as the key path.
+
 ## Installation
 
 ```javascript

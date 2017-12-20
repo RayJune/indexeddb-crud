@@ -4,11 +4,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   // 5 private property
   var _db;
   var _storeName;
-  var _configKey;
   var _presentKey;
-  var _initialJSONData;
-  var _initialJSONDataUseful;
-  var _initialJSONDataLen;
 
   // init indexedDB
   function init(config, successCallback, failCallback) {
@@ -28,76 +24,48 @@ var indexedDBHandler = (function indexedDBHandler() {
 
     // OK
     _storeName = config.storeName; // storage storeName
-    _configKey = config.key;
-    _initialJSONData = _getJSONData(config.initialData);
-    _initialJSONDataLen = _getinitialJSONDataLen(_initialJSONData);
-    _initialJSONDataUseful = config.initialJSONDataUseful;
 
-    request.onerror = function _openDBError() {
-      console.log('Pity, fail to load indexedDB. We will offer you the without indexedDB mode');
+    request.onerror = function _openDBError(e) {
+      // window.alert('Pity, fail to load indexedDB. We will offer you the without indexedDB mode');
+      window.alert('Something is wrong with indexedDB, we offer you the without DB mode, for more information, checkout console');
+      console.log(e.target.error);
       failCallback();
     };
+
     request.onsuccess = function _openDBSuccess(e) {
       _db = e.target.result;
-      _db.onerror = function errorHandler(e) {
-        // Generic error handler for all errors targeted at this database's requests
-        window.alert('Database error: ' + e.target.errorCode);
-      };
       successCallback();
       _getPresentKey();
     };
 
-    // When you create a new database or increase the version number of an existing database
+    // Creating or updating the version of the database
     request.onupgradeneeded = function schemaUp(e) {
-      var i;
-      var store;
-      var initialJSONData;
-      console.log(_initialJSONData);
-      console.log(_initialJSONDataLen);
+      var objectStore;
+      // var initialJSONData;
+
       _db = e.target.result;
-      console.log('scheme up');
+      console.log('onupgradeneeded in');
       if (!(_db.objectStoreNames.contains(_storeName))) {
-        store = _db.createObjectStore(_storeName, { keyPath: _configKey, autoIncrement: true });
-        console.log(initialJSONData);
-        console.log(_initialJSONDataLen);
-        if (initialJSONData) {
-          for (i = 0; i < _initialJSONDataLen; i++) {
-            store.add(initialJSONData[i]);
-            console.log(initialJSONData[i]);
+        objectStore = _db.createObjectStore(_storeName, { keyPath: config.key, autoIncrement: true });
+        // Use transaction oncomplete to make sure the objectStore creation is
+        objectStore.transaction.oncomplete = function addInitialData() {
+          // Store values in the newly created objectStore.
+          var storeHander = _transactionGenerator(true);
+
+          try {
+            config.initialData.forEach(function (data) {
+              storeHander.add(data);
+            });
+          } catch (error) {
+            console.log(error);
+            window.alert('please input correct array object data :)');
           }
-          _presentKey = _presentKey + _initialJSONDataLen - 1;
-          console.log(_presentKey);
-          _getPresentKey();
-        }
+        };
       }
     };
   }
 
-  function _getJSONData(rawData) {
-    var result;
-
-    try {
-      // OK
-      result = JSON.parse(JSON.stringify(rawData));
-    } catch (error) {
-      window.alert('Please set correct JSON type :>');
-      result = false;
-    } finally {
-      return result;
-    }
-  }
-
-  function _getinitialJSONDataLen(JSONData) {
-    if (JSONData) {
-      if (JSONData.length) {
-        return JSONData.length;
-      }
-      return 1;
-    }
-    return 0;
-  }
-
-  // set present key value to _presentKey (the private property) 
+  // set present key value to _presentKey (the private property)
   function _getPresentKey() {
     var storeHander = _transactionGenerator(true);
     var range = IDBKeyRange.lowerBound(0);
@@ -132,7 +100,7 @@ var indexedDBHandler = (function indexedDBHandler() {
 
     addOpt.onsuccess = function success() {
       console.log('Bravo, success to add one data to indexedDB');
-      if (successCallback) { // if has callback been input, execute it 
+      if (successCallback) { // if has callback been input, execute it
         _successCallbackHandler(successCallback, newData, successCallbackArrayParameter);
       }
     };
@@ -254,7 +222,7 @@ var indexedDBHandler = (function indexedDBHandler() {
     if (_initialJSONDataUseful) {
       return IDBKeyRange.lowerBound(0);
     }
-    // #FIXME: 
+    // #FIXME:
     // console.log(_initialJSONDataLen);
     return IDBKeyRange.lowerBound(1 - 1, true);
   }
