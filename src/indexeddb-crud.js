@@ -4,7 +4,6 @@ var indexedDBHandler = (function indexedDBHandler() {
   // 5 private property
   var _db;
   var _storeName;
-  var _presentKey;
 
   // init indexedDB
   function init(config, successCallback, failCallback) {
@@ -14,6 +13,7 @@ var indexedDBHandler = (function indexedDBHandler() {
       failCallback();
       return 0;
     }
+    _storeName = config.storeName; // storage storeName
     _openDB(config, successCallback, failCallback);
 
     return 0;
@@ -22,26 +22,21 @@ var indexedDBHandler = (function indexedDBHandler() {
   function _openDB(config, successCallback, failCallback) {
     var request = indexedDB.open(config.name, config.version); // open indexedDB
 
-    // OK
-    _storeName = config.storeName; // storage storeName
-
     request.onerror = function _openDBError(e) {
       // window.alert('Pity, fail to load indexedDB. We will offer you the without indexedDB mode');
       window.alert('Something is wrong with indexedDB, we offer you the without DB mode, for more information, checkout console');
       console.log(e.target.error);
       failCallback();
     };
-
     request.onsuccess = function _openDBSuccess(e) {
       _db = e.target.result;
       successCallback();
-      _getPresentKey();
+      // _getPresentKey();
     };
 
     // Creating or updating the version of the database
     request.onupgradeneeded = function schemaUp(e) {
       var objectStore;
-      // var initialJSONData;
 
       _db = e.target.result;
       console.log('onupgradeneeded in');
@@ -53,47 +48,20 @@ var indexedDBHandler = (function indexedDBHandler() {
           var storeHander = _transactionGenerator(true);
 
           try {
-            config.initialData.forEach(function (data) {
+            config.initialData.forEach(function addEveryInitialData(data) {
               storeHander.add(data);
             });
           } catch (error) {
             console.log(error);
-            window.alert('please input correct array object data :)');
+            window.alert('please set correct initial array object data :)');
           }
         };
       }
     };
   }
 
-  // set present key value to _presentKey (the private property)
-  function _getPresentKey() {
-    var storeHander = _transactionGenerator(true);
-    var range = IDBKeyRange.lowerBound(0);
-
-    storeHander.openCursor(range, 'next').onsuccess = function _getPresentKeyHandler(e) {
-      var cursor = e.target.result;
-
-      if (cursor) {
-        cursor.continue();
-        _presentKey = cursor.value.id;
-      } else {
-        if (!_presentKey) {
-          _presentKey = 0;
-        }
-        console.log('now key is:' +  _presentKey); // initial value is 0
-      }
-    };
-  }
 
   /* CRUD */
-
-  // use closure to keep _presentKey, you will need it in add
-  function getNewKey() {
-    _presentKey += 1;
-
-    return _presentKey;
-  }
-
   function addItem(newData, successCallback, successCallbackArrayParameter) {
     var storeHander = _transactionGenerator(true);
     var addOpt = storeHander.add(newData);
@@ -219,12 +187,12 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function _rangeGenerator() {
-    if (_initialJSONDataUseful) {
-      return IDBKeyRange.lowerBound(0);
-    }
+    // if (_initialJSONDataUseful) {
+    //   return IDBKeyRange.lowerBound(0);
+    // }
     // #FIXME:
     // console.log(_initialJSONDataLen);
-    return IDBKeyRange.lowerBound(1 - 1, true);
+    return IDBKeyRange.lowerBound(0, true);
   }
 
   function _successCallbackHandler(successCallback, result, successCallbackArrayParameter) {
@@ -239,7 +207,6 @@ var indexedDBHandler = (function indexedDBHandler() {
   /* public interface */
   return {
     init: init,
-    getNewKey: getNewKey,
     addItem: addItem,
     getItem: getItem,
     getConditionItem: getConditionItem,
