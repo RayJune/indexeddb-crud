@@ -100,28 +100,28 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   /* CRUD */
 
-  function addItem(newData, successCallback, successCallbackArrayParameter) {
+  function addItem(newData, successCallback) {
     var addRequest = _transactionGenerator(true).add(newData);
 
     addRequest.onsuccess = function success() {
       console.log('\u2713 add ' + _configKey + ' = ' + newData[_configKey] + ' data succeed :)');
       if (successCallback) {
-        _successCallbackHandler(successCallback, newData, successCallbackArrayParameter);
+        successCallback(newData);
       }
     };
   }
 
-  function getItem(key, successCallback, successCallbackArrayParameter) {
+  function getItem(key, successCallback) {
     var getRequest = _transactionGenerator(false).get(parseInt(key, 10));  // get it by index
 
     getRequest.onsuccess = function getDataSuccess() {
       console.log('\u2713 get '  + _configKey + ' = ' + key + ' data success :)');
-      _successCallbackHandler(successCallback, getRequest.result, successCallbackArrayParameter);
+      successCallback(getRequest.result);
     };
   }
 
   // retrieve eligible data (boolean condition)
-  function getConditionItem(condition, whether, successCallback, successCallbackArrayParameter) {
+  function getConditionItem(condition, whether, successCallback) {
     var result = []; // use an array to storage eligible data
 
     _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function getConditionItemHandler(e) {
@@ -138,13 +138,13 @@ var indexedDBHandler = (function indexedDBHandler() {
           }
         }
         cursor.continue();
-      } else {
-        _successCallbackHandler(successCallback, result, successCallbackArrayParameter);
+      } else if (successCallback) {
+        successCallback(result);
       }
     };
   }
 
-  function getAll(successCallback, successCallbackArrayParameter) {
+  function getAll(successCallback) {
     var result = [];
 
     _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function getAllHandler(e) {
@@ -155,35 +155,37 @@ var indexedDBHandler = (function indexedDBHandler() {
         cursor.continue();
       } else {
         console.log('\u2713 get all data success :)');
-        _successCallbackHandler(successCallback, result, successCallbackArrayParameter);
+        if (successCallback) {
+          successCallback(result);
+        }
       }
     };
   }
 
   // update one
-  function updateItem(newData, successCallback, successCallbackArrayParameter) {
+  function updateItem(newData, successCallback) {
     var putRequest = _transactionGenerator(true).put(newData);
 
     putRequest.onsuccess = function putSuccess() {
       console.log('\u2713 update ' + _configKey + ' = ' + newData[_configKey] + ' data success :)');
       if (successCallback) {
-        _successCallbackHandler(successCallback, newData, successCallbackArrayParameter);
+        successCallback(newData);
       }
     };
   }
 
-  function removeItem(key, successCallback, successCallbackArrayParameter) {
+  function removeItem(key, successCallback) {
     var deleteRequest = _transactionGenerator(true).delete(key);
 
     deleteRequest.onsuccess = function deleteSuccess() {
       console.log('\u2713 remove ' + _configKey + ' = ' + key + ' data success :)');
       if (successCallback) {
-        _successCallbackHandler(successCallback, key, successCallbackArrayParameter);
+        successCallback(key);
       }
     };
   }
 
-  function clear(successCallback, successCallbackArrayParameter) {
+  function clear(successCallback) {
     _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function clearHandler(e) {
       var cursor = e.target.result;
       var deleteRequest;
@@ -193,10 +195,11 @@ var indexedDBHandler = (function indexedDBHandler() {
         deleteRequest.onsuccess = function success() {
         };
         cursor.continue();
-      } else if (successCallback) {
-        _successCallbackHandler(successCallback, 'all data', successCallbackArrayParameter);
       } else {
         console.log('\u2713 clear all data success :)');
+        if (successCallback) {
+          successCallback('clear all data success');
+        }
       }
     };
   }
@@ -214,19 +217,7 @@ var indexedDBHandler = (function indexedDBHandler() {
     return transaction.objectStore(_storeName);
   }
 
-  function _successCallbackHandler(successCallback, result, successCallbackArrayParameter) {
-    if (successCallbackArrayParameter) {
-      if (Array.isArray(successCallbackArrayParameter)) {
-        successCallbackArrayParameter.unshift(result);
-        successCallback.apply(null, successCallbackArrayParameter);
-      } else {
-        throw new TypeError('please set correct array type of callback parameter');
-      }
-    } else {
-      successCallback(result);
-    }
-  }
-
+  
   /* public interface */
   return {
     init: init,
