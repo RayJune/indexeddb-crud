@@ -22,7 +22,7 @@ var DB = require('indexeddb-crud');
 
 ### API
 
-#### init(config, successCallback)
+#### init(config, successCallback, failCallback)
 
 * your config's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `you must have a key(number type)`, e.g., in this code key is id):
 
@@ -32,13 +32,9 @@ var DB = require('indexeddb-crud');
     version: '1',
     key: 'id',
     storeName: 'user',
-    initialData = { 
-      id: 0,
-      someEvent: 0,
-      finished: true,
-      date: 0
-    },
-    initialDataUseful = false
+    initialData = [
+      { id: 0, someEvent: 0, finished: true, date: 0 }
+    ]
   };
 ```
 
@@ -81,13 +77,13 @@ var data = {
 DB.addItem(data);
 ```
 
-#### get(key, successCallback, [successCallbackParaArr]?)
+#### getItem(key, successCallback, [successCallbackParaArr]?)
 
 ```javascript
 function dosomething(data) {
   console.log(data);
 }
-DB.get(1, dosomething);
+DB.getItem(1, dosomething);
 // data's value
 ```
 
@@ -109,13 +105,9 @@ DB.getConditionItem(whether, condition, successCallback, [successCallbackParaArr
     version: '11',
     key: 'id',
     storeName: 'list',
-    initialData: [{
-      id: 0,
-      event: 0,
-      finished: true,
-      date: 0
-    }],
-    initialDataUseful: false
+    initialData: [
+      { id: 0, event: 0, finished: true, date: 0 }
+    ],
   };
 
 DB.getConditionItem('true', key, successCallback);

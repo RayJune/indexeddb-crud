@@ -6,7 +6,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   var _configKey;
 
   /* init indexedDB */
-  
+
   function init(config, successCallback, failCallback) {
     // firstly inspect browser's support for indexedDB
     if (!window.indexedDB) {
@@ -48,6 +48,7 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   function _createStoreHandler(key, initialData) {
     var objectStore = _db.createObjectStore(_storeName, { keyPath: key, autoIncrement: true });
+
     // Use transaction oncomplete to make sure the objectStore creation is
     objectStore.transaction.oncomplete = function addInitialData() {
       var storeHander;
@@ -71,10 +72,7 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   // set present key value to _presentKey (the private property)
   function _getPresentKey() {
-    var storeHandler = _transactionGenerator(true);
-    var range = IDBKeyRange.lowerBound(0);
-
-    storeHandler.openCursor(range, 'next').onsuccess = function _getPresentKeyHandler(e) {
+    _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function _getPresentKeyHandler(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -89,6 +87,10 @@ var indexedDBHandler = (function indexedDBHandler() {
     };
   }
 
+  function _rangeGenerator() {
+    return IDBKeyRange.lowerBound(1);
+  }
+
   function getNewKey() {
     _presentKey += 1;
 
@@ -99,12 +101,10 @@ var indexedDBHandler = (function indexedDBHandler() {
   /* CRUD */
 
   function addItem(newData, successCallback, successCallbackArrayParameter) {
-    var storeHander = _transactionGenerator(true);
-    var addRequest = storeHander.add(newData);
+    var addRequest = _transactionGenerator(true).add(newData);
 
     addRequest.onsuccess = function success() {
       console.log('\u2713 add ' + _configKey + ' = ' + newData[_configKey] + ' data succeed :)');
-      _presentKey += 1;
       if (successCallback) {
         _successCallbackHandler(successCallback, newData, successCallbackArrayParameter);
       }
@@ -112,8 +112,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function getItem(key, successCallback, successCallbackArrayParameter) {
-    var storeHander = _transactionGenerator(false);
-    var getRequest = storeHander.get(key);  // get it by index
+    var getRequest = _transactionGenerator(false).get(parseInt(key, 10));  // get it by index
 
     getRequest.onsuccess = function getDataSuccess() {
       console.log('\u2713 get '  + _configKey + ' = ' + key + ' data success :)');
@@ -123,11 +122,9 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   // retrieve eligible data (boolean condition)
   function getConditionItem(condition, whether, successCallback, successCallbackArrayParameter) {
-    var storeHander = _transactionGenerator(true);
-    var range = _rangeToAll();
     var result = []; // use an array to storage eligible data
 
-    storeHander.openCursor(range, 'next').onsuccess = function getConditionItemHandler(e) {
+    _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function getConditionItemHandler(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -148,18 +145,16 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function getAll(successCallback, successCallbackArrayParameter) {
-    var storeHander = _transactionGenerator(true);
-    var range = _rangeToAll();
     var result = [];
 
-    storeHander.openCursor(range, 'next').onsuccess = function getAllHandler(e) {
+    _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function getAllHandler(e) {
       var cursor = e.target.result;
 
       if (cursor) {
         result.push(cursor.value);
         cursor.continue();
       } else {
-        console.log('\u2713 get all data success :)')
+        console.log('\u2713 get all data success :)');
         _successCallbackHandler(successCallback, result, successCallbackArrayParameter);
       }
     };
@@ -167,11 +162,9 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   // update one
   function updateItem(newData, successCallback, successCallbackArrayParameter) {
-    // #TODO: update part
-    var storeHander = _transactionGenerator(true);
-    var putRequest = storeHander.put(newData);
+    var putRequest = _transactionGenerator(true).put(newData);
 
-    putRequest.onsuccess = function updateSuccess() {
+    putRequest.onsuccess = function putSuccess() {
       console.log('\u2713 update ' + _configKey + ' = ' + newData[_configKey] + ' data success :)');
       if (successCallback) {
         _successCallbackHandler(successCallback, newData, successCallbackArrayParameter);
@@ -180,10 +173,9 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function removeItem(key, successCallback, successCallbackArrayParameter) {
-    var storeHander = _transactionGenerator(true);
-    var removeRequest = storeHander.delete(key);
+    var deleteRequest = _transactionGenerator(true).delete(key);
 
-    removeRequest.onsuccess = function deleteSuccess() {
+    deleteRequest.onsuccess = function deleteSuccess() {
       console.log('\u2713 remove ' + _configKey + ' = ' + key + ' data success :)');
       if (successCallback) {
         _successCallbackHandler(successCallback, key, successCallbackArrayParameter);
@@ -192,22 +184,19 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function clear(successCallback, successCallbackArrayParameter) {
-    var storeHander = _transactionGenerator(true);
-    var range = _rangeToAll();
-
-    storeHander.openCursor(range, 'next').onsuccess = function clearHandler(e) {
+    _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function clearHandler(e) {
       var cursor = e.target.result;
-      var requestDel;
+      var deleteRequest;
 
       if (cursor) {
-        requestDel = cursor.delete();
-        requestDel.onsuccess = function success() {
+        deleteRequest = cursor.delete();
+        deleteRequest.onsuccess = function success() {
         };
         cursor.continue();
       } else if (successCallback) {
         _successCallbackHandler(successCallback, 'all data', successCallbackArrayParameter);
       } else {
-        console.log('\u2713 clear all data success :)')
+        console.log('\u2713 clear all data success :)');
       }
     };
   }
@@ -223,10 +212,6 @@ var indexedDBHandler = (function indexedDBHandler() {
     }
 
     return transaction.objectStore(_storeName);
-  }
-
-  function _rangeToAll() {
-    return IDBKeyRange.lowerBound(0, true);
   }
 
   function _successCallbackHandler(successCallback, result, successCallbackArrayParameter) {
