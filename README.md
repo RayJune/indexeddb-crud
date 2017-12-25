@@ -2,7 +2,7 @@
 
 indexedDB-CRUD packs obscure indexedDB CRUD methods to a really coder-friendly succinct interface.
 
-It supports a configurable key(number type), a storeObject to store your data and CRUE methods to operate indexedDB extremely easy.
+It supports a configurable key(number type), a storeObject to store your data and CRUE methods to operate indexedDB extremely easily.
 
 This object store can only hold JavaScript objects. The objects must have a property with the same name as the key path.
 
@@ -12,7 +12,7 @@ This object store can only hold JavaScript objects. The objects must have a prop
 npm install indexeddb-crud --save
 ```
 
-## useage
+## usage
 
 ### import
 
@@ -22,13 +22,14 @@ var DB = require('indexeddb-crud');
 
 ### API
 
-#### init(config, successCallback, failCallback)
+#### init(config, successCallback?, failCallback?)
 
-* your config's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `you must have a key(number type)`, e.g., in this code key is id):
+* your config's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `you must have a key(number type)`, in this following code key is id)
+* initialData is *Optional*
 
 ```javascript
   var config = {  
-    name: 'justToDo',
+    name: 'JustToDo',
     version: '1',
     key: 'id',
     storeName: 'user',
@@ -38,9 +39,7 @@ var DB = require('indexeddb-crud');
   };
 ```
 
-* Attention the successCallback is `required`, which is used to initial your eventListeners (when indexedDB opened, it will be called)
-
-e.g.
+e.g. successCallback:
 
 ```javascript
 function addEventListeners() {
@@ -59,9 +58,9 @@ DB.init(config, addEventListeners);
 DB.getNewKey();
 ```
 
-You will need it in addItem().
+You will need it in `addItem()`.
 
-#### addItem(data, successCallback?, [successCallbackParaArr]?)
+#### addItem(data, successCallback?)
 
 * data's structure should match to your config.dataDemo.
 
@@ -77,7 +76,7 @@ var data = {
 DB.addItem(data);
 ```
 
-#### getItem(key, successCallback, [successCallbackParaArr]?)
+#### getItem(key, successCallback)
 
 ```javascript
 function dosomething(data) {
@@ -89,14 +88,13 @@ DB.getItem(1, dosomething);
 
 * the key should be a number, which matched to db's id
 
-#### getConditionItem (condition, whether, successCallback, [successCallbackParaArr]?)
+#### getConditionItem(condition, whether, successCallback)
 
 ```javascript
-DB.getConditionItem(whether, condition, successCallback, [successCallbackParaArr]);
+DB.getConditionItem(condition, whether, successCallback);
 ```
 
 * whether's value is true or false
-
 * `condition` should be a boolean-condition from DB.config.demo, for example:
 
 ```javascript
@@ -107,13 +105,13 @@ DB.getConditionItem(whether, condition, successCallback, [successCallbackParaArr
     storeName: 'list',
     initialData: [
       { id: 0, event: 0, finished: true, date: 0 }
-    ],
+    ]
   };
 
 DB.getConditionItem('true', key, successCallback);
 ```
 
-#### getAll(successCallback, [successCallbackParaArr]?)
+#### getAll(successCallback?)
 
 ```javascript
 function doSomething(dataArr) {
@@ -123,45 +121,30 @@ DB.getAll(doSomething);
 // dataArr's value
 ```
 
-*  the successCallback and successCallbackParaArr is `optional`, when getAll succeed it will be called
-
-#### updateItem(data, successCallback?, [successCallbackParaArr]?)
+#### updateItem(newData, successCallback?)
 
 ```javascript
-var changedData = {
+var newData = {
   id: 10,
   someEvent: 'play soccer',
   finished: true,
   userDate: new Date()
 };
-DB.updateItem(changedData);
+DB.updateItem(newData);
 ```
 
-#### removeItem(key, successCallback?, [successCallbackParaArr]?)
+#### removeItem(key, successCallback?)
+
+* the `key should be a number`, which matched to db's key.
 
 ```javascript
 DB.removeItem(1);
 ```
-* the `key should be a number`, which matched to db's key.
 
-#### clear(successCallback?, [successCallbackParaArr]?)
+#### clear(successCallback?)
 
 ```javascript
 DB.clear();
-```
-
-when you want to add a data to list, you will need it to your data.id (auto ++ inside the function)
-
-for example:
-
-```javascript
-var newNodeData = {
-  id: DB.getNewKey(),
-  event: 'do something',
-  inished: false
-};
-
-DB.addItem(newNodeData);
 ```
 
 ## example
