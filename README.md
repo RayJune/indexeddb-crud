@@ -25,18 +25,18 @@ var DB = require('indexeddb-crud');
 #### init(config, successCallback?, failCallback?)
 
 * your config's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `you must have a key(number type)`, in this following code key is id)
-* initialData is *Optional*
+* initialData is *Optional*, and it's a array object.
 
 ```javascript
-  var config = {  
-    name: 'JustToDo',
-    version: '1',
-    key: 'id',
-    storeName: 'user',
-    initialData = [
-      { id: 0, someEvent: 0, finished: true, date: 0 }
-    ]
-  };
+var config = {  
+  name: 'JustToDo',
+  version: '1',
+  key: 'id',
+  storeName: 'user',
+  initialData = [
+    { id: 0, someEvent: 0, finished: true, date: 0 }
+  ]
+};
 ```
 
 e.g. successCallback:
@@ -62,16 +62,15 @@ You will need it in `addItem()`.
 
 #### addItem(data, successCallback?)
 
-* data's structure should match to your config.dataDemo.
+* data's structure should at least contains number type key.
 
 e.g.
 
 ```javascript
-var data = {
-  id: DB.getNewKey(),
-  someEvent: 'play soccer',
-  finished: false,
-  userDate: new Date()
+var data = { 
+  id: DB.getNewKey(), 
+  event: 'play soccer', 
+  finished: false 
 };
 DB.addItem(data);
 ```
@@ -95,18 +94,18 @@ DB.getConditionItem(condition, whether, successCallback);
 ```
 
 * whether's value is true or false
-* `condition` should be a boolean-condition from DB.config.demo, for example:
+* `condition` should be a boolean-condition from `DB.config.demo`, for example:
 
 ```javascript
-  var dbConfig = {
-    name: 'JustToDo',
-    version: '11',
-    key: 'id',
-    storeName: 'list',
-    initialData: [
-      { id: 0, event: 0, finished: true, date: 0 }
-    ]
-  };
+var dbConfig = {
+  name: 'JustToDo',
+  version: '11',
+  key: 'id',
+  storeName: 'list',
+  initialData: [
+    { id: 0, event: 0, finished: true, date: 0 }
+  ]
+};
 
 DB.getConditionItem('true', key, successCallback);
 ```
@@ -135,7 +134,7 @@ DB.updateItem(newData);
 
 #### removeItem(key, successCallback?)
 
-* the `key should be a number`, which matched to db's key.
+* the **key should be number type**, which matched to db's key.
 
 ```javascript
 DB.removeItem(1);

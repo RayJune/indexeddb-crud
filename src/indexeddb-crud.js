@@ -22,27 +22,35 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function _openDB(config, successCallback, failCallback) {
-    var request = indexedDB.open(config.name, config.version); // open indexedDB
+    var openRequest = indexedDB.open(config.name, config.version); // open indexedDB
 
-    request.onerror = function _openDBError(e) {
-      // window.alert('Pity, fail to load indexedDB. We will offer you the without indexedDB mode');
-      window.alert('Something is wrong with indexedDB, we offer you the without DB mode, for more information, checkout console');
-      console.log(e.target.error);
-      failCallback();
-    };
-    request.onsuccess = function _openDBSuccess(e) {
-      _db = e.target.result;
-      successCallback();
-      _getPresentKey();
+    // an onblocked event is fired until they are closed or reloaded
+    openRequest.onblocked = function blockedSchemeUp() {
+      // If some other tab is loaded with the database, then it needs to be closed before we can proceed.
+      window.alert('Please close all other tabs with this site open');
     };
 
     // Creating or updating the version of the database
-    request.onupgradeneeded = function schemaUp(e) {
+    openRequest.onupgradeneeded = function schemaUp(e) {
+      // All other databases have been closed. Set everything up.
       _db = e.target.result;
       console.log('onupgradeneeded in');
       if (!(_db.objectStoreNames.contains(_storeName))) {
         _createStoreHandler(config.key, config.initialData);
       }
+    };
+
+    openRequest.onsuccess = function _openSuccess(e) {
+      _db = e.target.result;
+      successCallback();
+      _getPresentKey();
+    };
+
+    openRequest.onerror = function _openError(e) {
+      // window.alert('Pity, fail to load indexedDB. We will offer you the without indexedDB mode');
+      window.alert('Something is wrong with indexedDB, we offer you the without DB mode, for more information, checkout console');
+      console.log(e.target.error);
+      failCallback();
     };
   }
 
@@ -51,20 +59,23 @@ var indexedDBHandler = (function indexedDBHandler() {
 
     // Use transaction oncomplete to make sure the objectStore creation is
     objectStore.transaction.oncomplete = function addInitialData() {
-      var storeHander;
+      var addRequest = function addRequestGenerator(data) {
+        _transactionGenerator(true).add(data);
+      };
 
       console.log('create ' + _storeName + '\'s objectStore succeed');
       if (initialData) {
         // Store initial values in the newly created objectStore.
-        storeHander = _transactionGenerator(true);
         try {
           initialData.forEach(function addEveryInitialData(data, index) {
-            storeHander.add(data);
-            console.log('add initial data[' + index + '] successed');
+            addRequest(data).success = function addInitialSuccess() {
+              console.log('add initial data[' + index + '] successed');
+            };
           });
         } catch (error) {
-          console.log(error);
           window.alert('please set correct initial array object data :)');
+          console.log(error);
+          throw error;
         }
       }
     };
@@ -72,7 +83,7 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   // set present key value to _presentKey (the private property)
   function _getPresentKey() {
-    _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function _getPresentKeyHandler(e) {
+    getAllRequest().onsuccess = function _getPresentKeyHandler(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -124,7 +135,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   function getConditionItem(condition, whether, successCallback) {
     var result = []; // use an array to storage eligible data
 
-    _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function getConditionItemHandler(e) {
+    getAllRequest().onsuccess = function getConditionItemSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -147,7 +158,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   function getAll(successCallback) {
     var result = [];
 
-    _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function getAllHandler(e) {
+    getAllRequest().onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -186,14 +197,11 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function clear(successCallback) {
-    _transactionGenerator(true).openCursor(_rangeGenerator(), 'next').onsuccess = function clearHandler(e) {
+    getAllRequest().onsuccess = function clearSuccess(e) {
       var cursor = e.target.result;
-      var deleteRequest;
 
       if (cursor) {
-        deleteRequest = cursor.delete();
-        deleteRequest.onsuccess = function success() {
-        };
+        cursor.delete();
         cursor.continue();
       } else {
         console.log('\u2713 clear all data success :)');
@@ -204,6 +212,9 @@ var indexedDBHandler = (function indexedDBHandler() {
     };
   }
 
+  function getAllRequest() {
+    return _transactionGenerator(true).openCursor(_rangeGenerator(), 'next');
+  }
 
   function _transactionGenerator(whetherWrite) {
     var transaction;
@@ -217,7 +228,7 @@ var indexedDBHandler = (function indexedDBHandler() {
     return transaction.objectStore(_storeName);
   }
 
-  
+
   /* public interface */
   return {
     init: init,
