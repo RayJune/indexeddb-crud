@@ -2,10 +2,9 @@
   "name": "indexeddb-crud",
   "version": "1.2.13",
   "description": "pack complex indexedDB CRUD methods to a friendly simple interface",
-  "main": "src/indexeddb-crud.js",
+  "main": "./dist/indexeddb-crud.js",
   "scripts": {
-    "prebuild": "browserify ./src/indexeddb-crud.js -o ./dist/indexeddb-crud.js",
-    "build": "uglifyjs ./dist/indexeddb-crud.js -m -c -o ./dist/indexeddb-crud.min.js",
+    "build": "browserify ./src/indexeddb-crud.js -o ./dist/indexeddb-crud.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -29,7 +28,6 @@
     "eslint": "^4.13.1",
     "eslint-config-airbnb-es5": "^1.2.0",
     "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-react": "^7.5.1",
-    "uglifyjs": "^2.4.11"
+    "eslint-plugin-react": "^7.5.1"
   }
 }
