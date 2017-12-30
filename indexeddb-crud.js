@@ -11,18 +11,18 @@ var indexedDBHandler = (function indexedDBHandler() {
     // firstly inspect browser's support for indexedDB
     if (!window.indexedDB) {
       window.alert('Your browser doesn\'t support a stable version of IndexedDB. We will offer you the without indexedDB mode');
-      openFailCallback();
+      openFailCallback(); // PUNCHLINE: offer without-DB mode
       return 0;
     }
-    _openHandler(config, openSuccessCallback, openFailCallback);
+    _openHandler(config, openSuccessCallback);
 
     return 0;
   }
 
-  function _openHandler(config, successCallback, failCallback) {
+  function _openHandler(config, openSuccessCallback) {
     var openRequest = window.indexedDB.open(config.name, config.version); // open indexedDB
 
-    _storeName = config.storeName; // storage storeName
+    _storeName = config.storeName;
     _configKey = config.key;
 
     // an onblocked event is fired until they are closed or reloaded
@@ -43,15 +43,14 @@ var indexedDBHandler = (function indexedDBHandler() {
 
     openRequest.onsuccess = function openSuccess(e) {
       _db = e.target.result;
-      successCallback();
-      _getPresentKey();
+      console.log('\u2713 open storeName = ' + _storeName + ' indexedDB objectStore success');
+      _getPresentKey(openSuccessCallback);
     };
 
     openRequest.onerror = function openError(e) {
       // window.alert('Pity, fail to load indexedDB. We will offer you the without indexedDB mode');
-      window.alert('Something is wrong with indexedDB, we offer you the without DB mode, for more information, checkout console');
+      window.alert('Something is wrong with indexedDB, for more information, checkout console');
       console.log(e.target.error);
-      failCallback(); // PUNCHLINE: offer without-DB mode
     };
   }
 
@@ -96,7 +95,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   // set present key value to _presentKey (the private property)
-  function _getPresentKey() {
+  function _getPresentKey(openSuccessCallback) {
     getAllRequest().onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
@@ -107,7 +106,9 @@ var indexedDBHandler = (function indexedDBHandler() {
         if (!_presentKey) {
           _presentKey = 0;
         }
-        console.log('now key = ' +  _presentKey); // initial value is 0
+        console.log('\u2713 now key = ' +  _presentKey); // initial value is 0
+        openSuccessCallback();
+        console.log('\u2713 openSuccessCallback finished');
       }
     };
   }
