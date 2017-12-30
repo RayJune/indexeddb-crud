@@ -22,7 +22,7 @@ var DB = require('indexeddb-crud');
 
 ### API
 
-#### init(config, successCallback?, failCallback?)
+#### open(config, successCallback?, failCallback?)
 
 * your config's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `you must have a key(number type)`, in this following code key is id)
 * initialData is *Optional*, and it's a array object.
@@ -33,23 +33,29 @@ var config = {
   version: '1',
   key: 'id',
   storeName: 'user',
-  initialData = [
+  initialData = {[
     { id: 0, someEvent: 0, finished: true, date: 0 }
-  ]
+  ]}
 };
 ```
 
 e.g. successCallback:
 
 ```javascript
-function addEventListeners() {
-  querySelector('#test').addEventlistener('click', handleClick, false);
+function addEvents() {
+  querySelector('#test').addEventlistener('click', clickHandler, false);
 }
-function handleClick() {
+function clickHandler() {
   console.log('test');
 }
 
-DB.init(config, addEventListeners);
+DB.open(config, addEvents);
+```
+
+#### length()
+
+```javascript
+var randomIndex = Math.floor(DB.length * Math.random());
 ```
 
 #### getNewKey()

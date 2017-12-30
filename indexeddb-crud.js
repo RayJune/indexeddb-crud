@@ -68,7 +68,7 @@ var indexedDBHandler = (function indexedDBHandler() {
         };
         // Store initial values in the newly created objectStore.
         try {
-          initialData.forEach(function addEveryInitialData(data, index) {
+          JSON.parse(JSON.stringify(initialData)).forEach(function addEveryInitialData(data, index) {
             addRequest(data).success = function addInitialSuccess() {
               console.log('add initial data[' + index + '] successed');
             };
@@ -111,6 +111,10 @@ var indexedDBHandler = (function indexedDBHandler() {
         console.log('\u2713 openSuccessCallback finished');
       }
     };
+  }
+
+  function length() {
+    return _presentKey;
   }
 
   function getNewKey() {
@@ -231,6 +235,7 @@ var indexedDBHandler = (function indexedDBHandler() {
   /* public interface */
   return {
     open: open,
+    length: length,
     getNewKey: getNewKey,
     addItem: addItem,
     getItem: getItem,
