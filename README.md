@@ -12,6 +12,34 @@ This object store can only hold JavaScript objects. The objects must have a prop
 npm install indexeddb-crud --save
 ```
 
+## API Overview
+
+common:
+
+* open(config, successCallback?, failCallback?)
+* getLength()
+* getNewKey()
+
+get:
+
+* getItem(key, successCallback?)
+* getConditionItem(condition, whether, successCallback?)
+* getAll(successCallback?)
+
+add:
+
+* addItem(data, successCallback?)
+
+remove:
+
+* removeItem(key, successCallback?)
+* removeConditionItem(condition, whether, successCallback?)
+* clear(successCallback?)
+
+update:
+
+* updateItem(newData, successCallback?)
+
 ## usage
 
 ### import
@@ -52,10 +80,10 @@ function clickHandler() {
 DB.open(config, addEvents);
 ```
 
-#### length()
+#### getLength()
 
 ```javascript
-var randomIndex = Math.floor(DB.length * Math.random());
+var randomIndex = Math.floor(DB.getLength() * Math.random());
 ```
 
 #### getNewKey()
@@ -81,7 +109,7 @@ var data = {
 DB.addItem(data);
 ```
 
-#### getItem(key, successCallback)
+#### getItem(key, successCallback?)
 
 ```javascript
 function dosomething(data) {
@@ -93,14 +121,14 @@ DB.getItem(1, dosomething);
 
 * the key should be a number, which matched to db's id
 
-#### getConditionItem(condition, whether, successCallback)
+#### getConditionItem(condition, whether, successCallback?)
 
 ```javascript
-DB.getConditionItem(condition, whether, successCallback);
+DB.getConditionItem(condition, whether, successCallback?);
 ```
 
-* whether's value is true or false
-* `condition` should be a boolean-condition from `DB.config.demo`, for example:
+* whether is Boolean
+* `condition` should be a boolean-condition, for example:
 
 ```javascript
 var dbConfig = {
@@ -126,6 +154,43 @@ DB.getAll(doSomething);
 // dataArr's value
 ```
 
+#### removeItem(key, successCallback?)
+
+* the **key should be number type**, which matched to db's key.
+
+```javascript
+DB.removeItem(1);
+```
+
+#### removeConditionItem(condition, whether, successCallback?)
+
+```javascript
+DB.removeConditionItem(condition, whether, successCallback?);
+```
+
+* whether is Boolean
+* `condition` should be a boolean-condition, for example:
+
+```javascript
+var dbConfig = {
+  name: 'JustToDo',
+  version: '11',
+  key: 'id',
+  storeName: 'list',
+  initialData: [
+    { id: 0, event: 0, finished: true, date: 0 }
+  ]
+};
+
+DB.removeConditionItem('true', key, successCallback);
+```
+
+#### clear(successCallback?)
+
+```javascript
+DB.clear();
+```
+
 #### updateItem(newData, successCallback?)
 
 ```javascript
@@ -136,20 +201,6 @@ var newData = {
   userDate: new Date()
 };
 DB.updateItem(newData);
-```
-
-#### removeItem(key, successCallback?)
-
-* the **key should be number type**, which matched to db's key.
-
-```javascript
-DB.removeItem(1);
-```
-
-#### clear(successCallback?)
-
-```javascript
-DB.clear();
 ```
 
 ## example

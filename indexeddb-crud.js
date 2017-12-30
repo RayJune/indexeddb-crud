@@ -11,7 +11,9 @@ var indexedDBHandler = (function indexedDBHandler() {
     // firstly inspect browser's support for indexedDB
     if (!window.indexedDB) {
       window.alert('Your browser doesn\'t support a stable version of IndexedDB. We will offer you the without indexedDB mode');
-      openFailCallback(); // PUNCHLINE: offer without-DB mode
+      if (openFailCallback) {
+        openFailCallback(); // PUNCHLINE: offer without-DB mode
+      }
       return 0;
     }
     _openHandler(config, openSuccessCallback);
@@ -107,13 +109,15 @@ var indexedDBHandler = (function indexedDBHandler() {
           _presentKey = 0;
         }
         console.log('\u2713 now key = ' +  _presentKey); // initial value is 0
-        openSuccessCallback();
-        console.log('\u2713 openSuccessCallback finished');
+        if (openSuccessCallback) {
+          openSuccessCallback();
+          console.log('\u2713 openSuccessCallback finished');
+        }
       }
     };
   }
 
-  function length() {
+  function getLength() {
     return _presentKey;
   }
 
@@ -142,11 +146,13 @@ var indexedDBHandler = (function indexedDBHandler() {
 
     getRequest.onsuccess = function getSuccess() {
       console.log('\u2713 get '  + _configKey + ' = ' + key + ' data success :)');
-      successCallback(getRequest.result);
+      if (successCallback) {
+        successCallback(getRequest.result);
+      }
     };
   }
 
-  // retrieve conditional data (boolean condition)
+  // get conditional data (boolean condition)
   function getConditionItem(condition, whether, successCallback) {
     var result = []; // use an array to storage eligible data
 
@@ -211,6 +217,27 @@ var indexedDBHandler = (function indexedDBHandler() {
     };
   }
 
+  function removeConditionItem(condition, whether, successCallback) {
+    getAllRequest().onsuccess = function getAllSuccess(e) {
+      var cursor = e.target.result;
+
+      if (cursor) {
+        if (whether) {
+          if (cursor.value[condition]) {
+            cursor.delete();
+          }
+        } else if (!whether) {
+          if (!cursor.value[condition]) {
+            cursor.delete();
+          }
+        }
+        cursor.continue();
+      } else if (successCallback) {
+        successCallback();
+      }
+    };
+  }
+
   function clear(successCallback) {
     getAllRequest().onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
@@ -235,15 +262,16 @@ var indexedDBHandler = (function indexedDBHandler() {
   /* public interface */
   return {
     open: open,
-    length: length,
+    getLength: getLength,
     getNewKey: getNewKey,
-    addItem: addItem,
     getItem: getItem,
     getConditionItem: getConditionItem,
     getAll: getAll,
-    updateItem: updateItem,
+    addItem: addItem,
     removeItem: removeItem,
-    clear: clear
+    removeConditionItem: removeConditionItem,
+    clear: clear,
+    updateItem: updateItem
   };
 }());
 
