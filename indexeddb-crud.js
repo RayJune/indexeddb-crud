@@ -1,5 +1,8 @@
 'use strict';
-var IndexedDBHandler = function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
+function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
+  var _db;
+  var _presentKey;
+
   /* init indexedDB */
   // firstly inspect browser's support for indexedDB
   if (!window.indexedDB) {
@@ -23,15 +26,15 @@ var IndexedDBHandler = function IndexedDBHandler(config, openSuccessCallback, op
     // Creating or updating the version of the database
     openRequest.onupgradeneeded = function schemaUp(e) {
       // All other databases have been closed. Set everything up.
-      this.db = e.target.result;
+      _db = e.target.result;
       console.log('onupgradeneeded in');
-      if (!(this.db.objectStoreNames.contains(config.storeName))) {
+      if (!(_db.objectStoreNames.contains(config.storeName))) {
         _createStoreHandler();
       }
     };
 
     openRequest.onsuccess = function openSuccess(e) {
-      this.db = e.target.result;
+      _db = e.target.result;
       console.log('\u2713 open storeName = ' + config.storeName + ' indexedDB objectStore success');
       _getPresentKey();
     };
@@ -44,7 +47,7 @@ var IndexedDBHandler = function IndexedDBHandler(config, openSuccessCallback, op
   }
 
   function _createStoreHandler() {
-    var objectStore = this.db.createObjectStore(config.storeName, { keyPath: config.key, autoIncrement: true });
+    var objectStore = _db.createObjectStore(config.storeName, { keyPath: config.key, autoIncrement: true });
 
     // Use transaction oncomplete to make sure the objectStore creation is
     objectStore.transaction.oncomplete = function addinitialData() {
@@ -75,27 +78,27 @@ var IndexedDBHandler = function IndexedDBHandler(config, openSuccessCallback, op
     var transaction;
 
     if (whetherWrite) {
-      transaction = this.db.transaction([config.storeName], 'readwrite');
+      transaction = _db.transaction([config.storeName], 'readwrite');
     } else {
-      transaction = this.db.transaction([config.storeName]);
+      transaction = _db.transaction([config.storeName]);
     }
 
     return transaction.objectStore(config.storeName);
   }
 
-  // set present key value to this.presentKey (the private property)
+  // set present key value to _presentKey (the private property)
   function _getPresentKey() {
     getAllRequest().onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
-        this.presentKey = cursor.value.id;
+        _presentKey = cursor.value.id;
         cursor.continue();
       } else {
-        if (!this.presentKey) {
-          this.presentKey = 0;
+        if (!_presentKey) {
+          _presentKey = 0;
         }
-        console.log('\u2713 now key = ' +  this.presentKey); // initial value is 0
+        console.log('\u2713 now key = ' +  _presentKey); // initial value is 0
         if (openSuccessCallback) {
           openSuccessCallback();
           console.log('\u2713 openSuccessCallback finished');
@@ -105,13 +108,13 @@ var IndexedDBHandler = function IndexedDBHandler(config, openSuccessCallback, op
   }
 
   function getLength() {
-    return this.presentKey;
+    return _presentKey;
   }
 
   function getNewKey() {
-    this.presentKey += 1;
+    _presentKey += 1;
 
-    return this.presentKey;
+    return _presentKey;
   }
 
 
@@ -247,19 +250,22 @@ var IndexedDBHandler = function IndexedDBHandler(config, openSuccessCallback, op
 
 
   /* public interface */
-  return {
-    open: open,
-    getLength: getLength,
-    getNewKey: getNewKey,
-    getItem: getItem,
-    getConditionItem: getConditionItem,
-    getAll: getAll,
-    addItem: addItem,
-    removeItem: removeItem,
-    removeConditionItem: removeConditionItem,
-    clear: clear,
-    updateItem: updateItem
-  };
+
+  this.getLength = getLength;
+  this.getNewKey = getNewKey;
+  this.getItem = getItem;
+  this.getConditionItem = getConditionItem;
+  this.getAll = getAll;
+  this.addItem = addItem;
+  this.removeItem = removeItem;
+  this.removeConditionItem = removeConditionItem;
+  this.clear = clear;
+  this.updateItem = updateItem;
+}
+
+IndexedDBHandler.prototype = {
+  constructor: IndexedDBHandler
 };
+
 
 module.exports = IndexedDBHandler;
