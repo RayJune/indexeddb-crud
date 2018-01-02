@@ -1,14 +1,14 @@
 'use strict';
 function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
   var _db;
-  var _presentKey;
+  var _presentKey = 0;
 
   /* init indexedDB */
   // firstly inspect browser's support for indexedDB
   if (!window.indexedDB) {
     window.alert('Your browser doesn\'t support a stable version of IndexedDB. We will offer you the without indexedDB mode');
     if (openFailCallback) {
-      openFailCallback(); // PUNCHLINE: offer without-DB mode
+      openFailCallback(); // PUNCHLINE: offer without-DB handler
     }
     return 0;
   }
@@ -88,16 +88,13 @@ function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
 
   // set present key value to _presentKey (the private property)
   function _getPresentKey() {
-    getAllRequest().onsuccess = function getAllSuccess(e) {
+    _getAllRequest().onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
         _presentKey = cursor.value.id;
         cursor.continue();
       } else {
-        if (!_presentKey) {
-          _presentKey = 0;
-        }
         console.log('\u2713 now key = ' +  _presentKey); // initial value is 0
         if (openSuccessCallback) {
           openSuccessCallback();
@@ -105,6 +102,10 @@ function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
         }
       }
     };
+  }
+
+  function _getAllRequest() {
+    return _whetherWriteTransaction(true).openCursor(IDBKeyRange.lowerBound(1), 'next');
   }
 
   function getLength() {
@@ -146,7 +147,7 @@ function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
   function getConditionItem(condition, whether, successCallback) {
     var result = []; // use an array to storage eligible data
 
-    getAllRequest().onsuccess = function getAllSuccess(e) {
+    _getAllRequest().onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -169,7 +170,7 @@ function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
   function getAll(successCallback) {
     var result = [];
 
-    getAllRequest().onsuccess = function getAllSuccess(e) {
+    _getAllRequest().onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -180,18 +181,6 @@ function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
         if (successCallback) {
           successCallback(result);
         }
-      }
-    };
-  }
-
-  // update one
-  function updateItem(newData, successCallback) {
-    var putRequest = _whetherWriteTransaction(true).put(newData);
-
-    putRequest.onsuccess = function putSuccess() {
-      console.log('\u2713 update ' + config.key + ' = ' + newData[config.key] + ' data success :)');
-      if (successCallback) {
-        successCallback(newData);
       }
     };
   }
@@ -208,7 +197,7 @@ function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
   }
 
   function removeConditionItem(condition, whether, successCallback) {
-    getAllRequest().onsuccess = function getAllSuccess(e) {
+    _getAllRequest().onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -229,7 +218,7 @@ function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
   }
 
   function clear(successCallback) {
-    getAllRequest().onsuccess = function getAllSuccess(e) {
+    _getAllRequest().onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -244,8 +233,16 @@ function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
     };
   }
 
-  function getAllRequest() {
-    return _whetherWriteTransaction(true).openCursor(IDBKeyRange.lowerBound(1), 'next');
+  // update one
+  function updateItem(newData, successCallback) {
+    var putRequest = _whetherWriteTransaction(true).put(newData);
+
+    putRequest.onsuccess = function putSuccess() {
+      console.log('\u2713 update ' + config.key + ' = ' + newData[config.key] + ' data success :)');
+      if (successCallback) {
+        successCallback(newData);
+      }
+    };
   }
 
 
