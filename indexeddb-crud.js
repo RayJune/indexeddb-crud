@@ -65,7 +65,7 @@ var IndexedDBHandler = function IndexedDBHandler(config, openSuccessCallback, op
         console.log('\u2713 now ' + that._storeName + '\'s max key is ' +  that._presentKey); // initial value is 0
         if (openSuccessCallback) {
           openSuccessCallback();
-          console.log('\u2713 ' + that._storeName + '\'s openSuccessCallback finished');
+          console.log('\u2713 ' + that._storeName + '\'s openSuccessCallback: ' + openSuccessCallback.name + ' finished');
         }
       }
     };
