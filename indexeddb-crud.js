@@ -265,7 +265,7 @@ IndexedDBHandler.prototype = (function prototypeGenerator() {
     return transaction.objectStore(storeName);
   }
 
-  function _getAllRequest(db, storeName, ) {
+  function _getAllRequest(db, storeName) {
     return _whetherWriteTransaction(db, storeName, true).openCursor(IDBKeyRange.lowerBound(1), 'next');
   }
 
