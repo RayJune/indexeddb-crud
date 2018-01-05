@@ -1,77 +1,89 @@
 'use strict';
-var indexedDBHandler = (function indexedDBHandler() {
-  var _db;
-  var _storeName;
-  var _presentKey;
-  var _configKey;
+var IndexedDBHandler = function IndexedDBHandler(config, openSuccessCallback, openFailCallback) {
+  var that;
 
   /* init indexedDB */
-
-  function open(config, openSuccessCallback, openFailCallback) {
-    // firstly inspect browser's support for indexedDB
-    if (!window.indexedDB) {
-      window.alert('Your browser doesn\'t support a stable version of IndexedDB. We will offer you the without indexedDB mode');
-      if (openFailCallback) {
-        openFailCallback(); // PUNCHLINE: offer without-DB mode
-      }
-      return 0;
+  // firstly inspect browser's support for indexedDB
+  if (!window.indexedDB) {
+    window.alert('Your browser doesn\'t support a stable version of IndexedDB. We will offer you the without indexedDB mode');
+    if (openFailCallback) {
+      openFailCallback(); // PUNCHLINE: offer without-DB handler
     }
-    _openHandler(config, openSuccessCallback);
-
     return 0;
   }
+  that = this;
 
-  function _openHandler(config, openSuccessCallback) {
+  /* private propeties */
+  that._db;
+  that._presentKey = 0;
+  that._key = config.key;
+  that._storeName = config.storeName;
+
+  _openHandler();
+
+  function _openHandler() {
     var openRequest = window.indexedDB.open(config.name, config.version); // open indexedDB
-
-    _storeName = config.storeName;
-    _configKey = config.key;
 
     // an onblocked event is fired until they are closed or reloaded
     openRequest.onblocked = function blockedSchemeUp() {
-      // If some other tab is loaded with the database, then it needs to be closed before we can proceed.
-      window.alert('Please close all other tabs with this site open');
+    // If some other tab is loaded with the database, then it needs to be closed before we can proceed.
+      // window.alert('Please close all other tabs with this site open');
     };
 
     // Creating or updating the version of the database
     openRequest.onupgradeneeded = function schemaUp(e) {
-      // All other databases have been closed. Set everything up.
-      _db = e.target.result;
+    // All other databases have been closed. Set everything up.
+      that._db = e.target.result;
       console.log('onupgradeneeded in');
-      if (!(_db.objectStoreNames.contains(_storeName))) {
-        _createStoreHandler(config.initialData);
+      if (!(that._db.objectStoreNames.contains(that._storeName))) {
+        _createStoreHandler();
       }
     };
 
     openRequest.onsuccess = function openSuccess(e) {
-      _db = e.target.result;
-      console.log('\u2713 open storeName = ' + _storeName + ' indexedDB objectStore success');
-      _getPresentKey(openSuccessCallback);
+      that._db = e.target.result;
+      console.log('\u2713 open ' + that._storeName + '\'s objectStore success');
+      _getPresentKey();
     };
 
     openRequest.onerror = function openError(e) {
-      // window.alert('Pity, fail to load indexedDB. We will offer you the without indexedDB mode');
+    // window.alert('Pity, fail to load indexedDB. We will offer you the without indexedDB mode');
       window.alert('Something is wrong with indexedDB, for more information, checkout console');
       console.log(e.target.error);
     };
   }
 
-  function _createStoreHandler(initialData) {
-    var objectStore = _db.createObjectStore(_storeName, { keyPath: _configKey, autoIncrement: true });
+  // set present key value to that._presentKey (the private property)
+  function _getPresentKey() {
+    _getAllRequest().onsuccess = function getAllSuccess(e) {
+      var cursor = e.target.result;
+
+      if (cursor) {
+        that._presentKey = cursor.value.id;
+        cursor.continue();
+      } else {
+        console.log('\u2713 now ' + that._storeName + '\'s max key is ' +  that._presentKey); // initial value is 0
+        if (openSuccessCallback) {
+          openSuccessCallback();
+          console.log('\u2713 ' + that._storeName + '\'s openSuccessCallback: ' + openSuccessCallback.name + ' finished');
+        }
+      }
+    };
+  }
+
+  function _createStoreHandler() {
+    var objectStore = that._db.createObjectStore(that._storeName, { keyPath: that._key, autoIncrement: true });
 
     // Use transaction oncomplete to make sure the objectStore creation is
-    objectStore.transaction.oncomplete = function addInitialData() {
-      var addRequest;
-
-      console.log('create ' + _storeName + '\'s objectStore succeed');
-      if (initialData) {
-        addRequest = function addRequestGenerator(data) {
-          _whetherWriteTransaction(true).add(data);
-        };
+    objectStore.transaction.oncomplete = function addinitialData() {
+      console.log('create ' + that._storeName + '\'s objectStore succeed');
+      if (config.initialData) {
         // Store initial values in the newly created objectStore.
         try {
-          JSON.parse(JSON.stringify(initialData)).forEach(function addEveryInitialData(data, index) {
-            addRequest(data).success = function addInitialSuccess() {
+          JSON.parse(JSON.stringify(config.initialData)).forEach(function addEveryInitialData(data, index) {
+            var addRequest = _transactionGenerator().add(data);
+
+            addRequest.onsuccess = function addInitialSuccess() {
               console.log('add initial data[' + index + '] successed');
             };
           });
@@ -84,57 +96,34 @@ var indexedDBHandler = (function indexedDBHandler() {
     };
   }
 
-  function _whetherWriteTransaction(whetherWrite) {
-    var transaction;
-
-    if (whetherWrite) {
-      transaction = _db.transaction([_storeName], 'readwrite');
-    } else {
-      transaction = _db.transaction([_storeName]);
-    }
-
-    return transaction.objectStore(_storeName);
+  function _transactionGenerator() {
+    return that._db.transaction([that._storeName], 'readwrite').objectStore(that._storeName);
   }
 
-  // set present key value to _presentKey (the private property)
-  function _getPresentKey(openSuccessCallback) {
-    getAllRequest().onsuccess = function getAllSuccess(e) {
-      var cursor = e.target.result;
-
-      if (cursor) {
-        _presentKey = cursor.value.id;
-        cursor.continue();
-      } else {
-        if (!_presentKey) {
-          _presentKey = 0;
-        }
-        console.log('\u2713 now key = ' +  _presentKey); // initial value is 0
-        if (openSuccessCallback) {
-          openSuccessCallback();
-          console.log('\u2713 openSuccessCallback finished');
-        }
-      }
-    };
+  function _getAllRequest() {
+    return _transactionGenerator().openCursor(IDBKeyRange.lowerBound(1), 'next');
   }
+};
 
+IndexedDBHandler.prototype = (function prototypeGenerator() {
   function getLength() {
-    return _presentKey;
+    return this._presentKey;
   }
 
   function getNewKey() {
-    _presentKey += 1;
+    this._presentKey += 1;
 
-    return _presentKey;
+    return this._presentKey;
   }
-
 
   /* CRUD */
 
   function addItem(newData, successCallback) {
-    var addRequest = _whetherWriteTransaction(true).add(newData);
+    var that = this;
+    var addRequest = _whetherWriteTransaction(that._db, that._storeName, true).add(newData);
 
     addRequest.onsuccess = function addSuccess() {
-      console.log('\u2713 add ' + _configKey + ' = ' + newData[_configKey] + ' data succeed :)');
+      console.log('\u2713 add ' + that._key + ' = ' + newData[that._key] + ' data succeed :)');
       if (successCallback) {
         successCallback(newData);
       }
@@ -142,10 +131,11 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function getItem(key, successCallback) {
-    var getRequest = _whetherWriteTransaction(false).get(parseInt(key, 10));  // get it by index
+    var that = this;
+    var getRequest = _whetherWriteTransaction(that._db, that._storeName, false).get(parseInt(key, 10));  // get it by index
 
     getRequest.onsuccess = function getSuccess() {
-      console.log('\u2713 get '  + _configKey + ' = ' + key + ' data success :)');
+      console.log('\u2713 get '  + that._key + ' = ' + key + ' data success :)');
       if (successCallback) {
         successCallback(getRequest.result);
       }
@@ -154,9 +144,10 @@ var indexedDBHandler = (function indexedDBHandler() {
 
   // get conditional data (boolean condition)
   function getConditionItem(condition, whether, successCallback) {
+    var that = this;
     var result = []; // use an array to storage eligible data
 
-    getAllRequest().onsuccess = function getAllSuccess(e) {
+    _getAllRequest(that._db, that._storeName).onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -177,9 +168,10 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function getAll(successCallback) {
+    var that = this;
     var result = [];
 
-    getAllRequest().onsuccess = function getAllSuccess(e) {
+    _getAllRequest(that._db, that._storeName).onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -194,23 +186,12 @@ var indexedDBHandler = (function indexedDBHandler() {
     };
   }
 
-  // update one
-  function updateItem(newData, successCallback) {
-    var putRequest = _whetherWriteTransaction(true).put(newData);
-
-    putRequest.onsuccess = function putSuccess() {
-      console.log('\u2713 update ' + _configKey + ' = ' + newData[_configKey] + ' data success :)');
-      if (successCallback) {
-        successCallback(newData);
-      }
-    };
-  }
-
   function removeItem(key, successCallback) {
-    var deleteRequest = _whetherWriteTransaction(true).delete(key);
+    var that = this;
+    var deleteRequest = _whetherWriteTransaction(that._db, that._storeName, true).delete(key);
 
     deleteRequest.onsuccess = function deleteSuccess() {
-      console.log('\u2713 remove ' + _configKey + ' = ' + key + ' data success :)');
+      console.log('\u2713 remove ' + that._key + ' = ' + key + ' data success :)');
       if (successCallback) {
         successCallback(key);
       }
@@ -218,7 +199,9 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function removeConditionItem(condition, whether, successCallback) {
-    getAllRequest().onsuccess = function getAllSuccess(e) {
+    var that = this;
+
+    _getAllRequest(that._db, that._storeName).onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -239,7 +222,9 @@ var indexedDBHandler = (function indexedDBHandler() {
   }
 
   function clear(successCallback) {
-    getAllRequest().onsuccess = function getAllSuccess(e) {
+    var that = this;
+
+    _getAllRequest(that._db, that._storeName).onsuccess = function getAllSuccess(e) {
       var cursor = e.target.result;
 
       if (cursor) {
@@ -254,14 +239,40 @@ var indexedDBHandler = (function indexedDBHandler() {
     };
   }
 
-  function getAllRequest() {
-    return _whetherWriteTransaction(true).openCursor(IDBKeyRange.lowerBound(1), 'next');
+  // update one
+  function updateItem(newData, successCallback) {
+    var that = this;
+    var putRequest = _whetherWriteTransaction(that._db, that._storeName, true).put(newData);
+
+    putRequest.onsuccess = function putSuccess() {
+      console.log('\u2713 update ' + that._key + ' = ' + newData[that._key] + ' data success :)');
+      if (successCallback) {
+        successCallback(newData);
+      }
+    };
+  }
+
+  /* private methods */
+  function _whetherWriteTransaction(db, storeName, whetherWrite) {
+    var transaction;
+
+    if (whetherWrite) {
+      transaction = db.transaction([storeName], 'readwrite');
+    } else {
+      transaction = db.transaction([storeName]);
+    }
+
+    return transaction.objectStore(storeName);
+  }
+
+  function _getAllRequest(db, storeName, ) {
+    return _whetherWriteTransaction(db, storeName, true).openCursor(IDBKeyRange.lowerBound(1), 'next');
   }
 
 
-  /* public interface */
   return {
-    open: open,
+    constructor: IndexedDBHandler,
+    /* public interface */
     getLength: getLength,
     getNewKey: getNewKey,
     getItem: getItem,
@@ -275,4 +286,4 @@ var indexedDBHandler = (function indexedDBHandler() {
   };
 }());
 
-module.exports = indexedDBHandler;
+module.exports = IndexedDBHandler;

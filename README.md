@@ -1,10 +1,12 @@
 # indexedDB-CRUD
 
-indexedDB-CRUD packs obscure indexedDB CRUD methods to a really coder-friendly succinct interface.
+indexedDB-CRUD packs obscure indexedDB CRUD methods to a really friendly succinct interface.
 
 It supports a configurable key(number type), a storeObject to store your data and CRUE methods to operate indexedDB extremely easily.
 
-This object store can only hold JavaScript objects. The objects must have a property with the same name as the key path.
+If you want to operate **one or more indexedDB objectStore**, just `new` it, and *you'll get a indexedDB-crud handler* for this objectStore.
+
+Keep in mind that indexedDB object store can *only hold JavaScript objects*. The objects *must have a property with the same name as the key path*.
 
 ## Installation
 
@@ -14,9 +16,17 @@ npm install indexeddb-crud --save
 
 ## API Overview
 
-common:
+### first step
 
-* open(config, successCallback?, failCallback?)
+```javascript
+var DB = require('indexeddb-crud');
+
+var fooDBHandler = new(config, successCallback?, failCallback?); // handler foo objectStore
+var barDBHandler = new(config, successCallback?, failCallback?); // handler bar objectStore
+```
+
+### common
+
 * getLength()
 * getNewKey()
 
@@ -45,7 +55,7 @@ update:
 ### import
 
 ```javascript
-var DB = require('indexeddb-crud');
+var fooDBHandler = require('indexeddb-crud');
 ```
 
 ### API
@@ -89,7 +99,7 @@ var randomIndex = Math.floor(DB.getLength() * Math.random());
 #### getNewKey()
 
 ```javascript
-DB.getNewKey();
+fooDBHandler.getNewKey();
 ```
 
 You will need it in `addItem()`.
@@ -102,11 +112,11 @@ e.g.
 
 ```javascript
 var data = { 
-  id: DB.getNewKey(), 
+  id: fooDBHandler.getNewKey(), 
   event: 'play soccer', 
   finished: false 
 };
-DB.addItem(data);
+fooDBHandler.addItem(data);
 ```
 
 #### getItem(key, successCallback?)
@@ -115,7 +125,7 @@ DB.addItem(data);
 function dosomething(data) {
   console.log(data);
 }
-DB.getItem(1, dosomething);
+fooDBHandler.getItem(1, dosomething);
 // data's value
 ```
 
@@ -124,7 +134,7 @@ DB.getItem(1, dosomething);
 #### getConditionItem(condition, whether, successCallback?)
 
 ```javascript
-DB.getConditionItem(condition, whether, successCallback?);
+fooDBHandler.getConditionItem(condition, whether, successCallback?);
 ```
 
 * whether is Boolean
@@ -141,7 +151,7 @@ var dbConfig = {
   ]
 };
 
-DB.getConditionItem('true', key, successCallback);
+fooDBHandler.getConditionItem('true', key, successCallback);
 ```
 
 #### getAll(successCallback?)
@@ -150,7 +160,7 @@ DB.getConditionItem('true', key, successCallback);
 function doSomething(dataArr) {
   console.log(dataArr);
 }
-DB.getAll(doSomething);
+fooDBHandler.getAll(doSomething);
 // dataArr's value
 ```
 
@@ -159,13 +169,13 @@ DB.getAll(doSomething);
 * the **key should be number type**, which matched to db's key.
 
 ```javascript
-DB.removeItem(1);
+fooDBHandler.removeItem(1);
 ```
 
 #### removeConditionItem(condition, whether, successCallback?)
 
 ```javascript
-DB.removeConditionItem(condition, whether, successCallback?);
+fooDBHandler.removeConditionItem(condition, whether, successCallback?);
 ```
 
 * whether is Boolean
@@ -182,13 +192,13 @@ var dbConfig = {
   ]
 };
 
-DB.removeConditionItem('true', key, successCallback);
+fooDBHandler.removeConditionItem('true', key, successCallback);
 ```
 
 #### clear(successCallback?)
 
 ```javascript
-DB.clear();
+DfooDBHandlerB.clear();
 ```
 
 #### updateItem(newData, successCallback?)
@@ -200,7 +210,7 @@ var newData = {
   finished: true,
   userDate: new Date()
 };
-DB.updateItem(newData);
+fooDBHandler.updateItem(newData);
 ```
 
 ## example
