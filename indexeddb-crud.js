@@ -83,11 +83,11 @@ var IndexedDBHandler = function IndexedDBHandler(config, openSuccessCallback, op
 
       addRequest.onsuccess = function addInitialSuccess() {
         console.log('add initial data[' + index + '] successed');
-        if (index === (initialData.length - 1)) {
-          console.log('\u2713 add all initial done :)');
-        }
       };
     });
+    transaction.oncomplete = function addAllDataDone() {
+      console.log('\u2713 add all initial done :)');
+    };
   }
 
   // set present key value to that._presentKey (the private property)
