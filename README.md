@@ -198,7 +198,7 @@ fooDBHandler.removeConditionItem('true', key, successCallback);
 #### clear(successCallback?)
 
 ```javascript
-DfooDBHandlerB.clear();
+fooDBHandler.clear();
 ```
 
 #### updateItem(newData, successCallback?)
