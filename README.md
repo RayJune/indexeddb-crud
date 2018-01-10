@@ -1,16 +1,17 @@
 # indexedDB-CRUD
 
-indexedDB-CRUD packs obscure indexedDB CRUD methods to a really friendly succinct interface.
+indexedDB-CRUD packs obscure indexedDB CRUD methods to a really friendly succinct interface. And offer **multi-objectStores CRUD handler**.
 
-It supports a configurable key(number type), a storeObject to store your data and CRUE methods to operate indexedDB extremely easily.
+If you want to operate **one or more indexedDB objectStore**, just `DB.open(config, openSuccessCallback)`, and *you'll get a indexedDB-crud handler* when its `openSuccessCallback` finished.
 
-If you want to operate **one or more indexedDB objectStore**, just `new` it, and *you'll get a indexedDB-crud handler* for this objectStore.
+Hope you keep in mind that:
 
-Keep in mind that indexedDB object store can *only hold JavaScript objects*. The objects *must have a property with the same name as the key path*.
+* `config`'s format should be correct
+* indexedDB object store can *only hold JavaScript objects*. The objects *must have a property with the same name as the key path*
 
 ## Installation
 
-```javascript
+```npm scripts
 npm install indexeddb-crud --save
 ```
 
@@ -18,63 +19,114 @@ npm install indexeddb-crud --save
 
 ### first step
 
-```javascript
-var DB = require('indexeddb-crud');
+* open(config, openSuccessCallback, openFailCallback)
 
-var fooDBHandler = new(config, successCallback?, failCallback?); // handler foo objectStore
-var barDBHandler = new(config, successCallback?, failCallback?); // handler bar objectStore
-```
+* getLength(storeName)
+* getNewKey(storeName)
 
 ### common
 
-* getLength()
-* getNewKey()
-
 get:
 
-* getItem(key, successCallback?)
-* getConditionItem(condition, whether, successCallback?)
-* getAll(successCallback?)
+* getItem(storeName, key, successCallback?)
+* getConditionItem(storeName, condition, whether, successCallback?)
+* getAll(storeName, successCallback?)
 
 add:
 
-* addItem(data, successCallback?)
+* addItem(storeName, data, successCallback?)
 
 remove:
 
-* removeItem(key, successCallback?)
-* removeConditionItem(condition, whether, successCallback?)
-* clear(successCallback?)
+* removeItem(storeName, key, successCallback?)
+* removeConditionItem(storeName, condition, whether, successCallback?)
+* clear(storeName, successCallback?)
 
 update:
 
-* updateItem(newData, successCallback?)
+* updateItem(storeName, newData, successCallback?)
 
 ## usage
 
 ### import
 
 ```javascript
-var fooDBHandler = require('indexeddb-crud');
+var DB = require('indexeddb-crud');
 ```
 
 ### API
 
 #### open(config, successCallback?, failCallback?)
 
-* your config's structure should like this (both have name, version and dataDemo{}, and in dataDemo, `you must have a key(number type)`, in this following code key is id)
-* initialData is *Optional*, and it's a array object.
+* initialData is *Optional*, and it's a array object
+* about initialData, `key = 0` is just for demo, we only use `key >= 1`, so we usually begain at `key = 1`
+* your config's structure should like this, `you must have a key(number type)`, in this following code key is id)
 
 ```javascript
-var config = {  
+config = {
+  name: '',
+  version: '',
+  storeConfig: [
+    {
+      storeName: '',
+      key: '',
+      storeConfig: [
+        ...(must have key property, number type)
+      ]
+    },
+    ...
+  ]
+} 
+```
+
+correct config just like this:
+
+```javascript
+var DBConfig = {
   name: 'JustToDo',
-  version: '1',
-  key: 'id',
-  storeName: 'user',
-  initialData = {[
-    { id: 0, someEvent: 0, finished: true, date: 0 }
-  ]}
+  version: '23',
+  storeConfig: [
+    {
+      storeName: 'list',
+      key: 'id',
+      initialData: [
+        { id: 0, event: 'JustDemo', finished: true, date: 0 } // just for demo, not actual use
+      ]
+    }
+  ]
 };
+```
+
+If you need more than 1 ObjectStore:
+
+```javascript
+var DBConfig = {
+  name: 'JustToDo',
+  version: '23',
+  storeConfig: [
+    {
+      storeName: 'list',
+      key: 'id',
+      initialData: [
+        { id: 1, event: 'JustDemo', finished: true, date: 0 }
+      ]
+    },
+    {
+      storeName: 'aphorism',
+      key: 'id',
+      initialData: [
+        {
+          "id": 1,
+          "content": "You're better than that"
+        },
+        {
+          "id": 2,
+          "content": "Yesterday You Said Tomorrow"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 e.g. successCallback:
@@ -90,21 +142,23 @@ function clickHandler() {
 DB.open(config, addEvents);
 ```
 
-#### getLength()
+#### getLength(storeName)
 
 ```javascript
-var randomIndex = Math.floor(DB.getLength() * Math.random());
+var storeName = 'list';
+var randomIndex = Math.floor(DB.getLength(storeName) * Math.random());
 ```
 
-#### getNewKey()
+#### getNewKey(storeName)
 
 ```javascript
-fooDBHandler.getNewKey();
+var storeName = 'list';
+DB.getNewKey(storeName);
 ```
 
-You will need it in `addItem()`.
+You will need it in `addItem(storeName, )`.
 
-#### addItem(data, successCallback?)
+#### addItem(storeName, data, successCallback?)
 
 * data's structure should at least contains number type key.
 
@@ -112,110 +166,133 @@ e.g.
 
 ```javascript
 var data = { 
-  id: fooDBHandler.getNewKey(), 
+  id: DB.getNewKey(storeName), 
   event: 'play soccer', 
   finished: false 
 };
-fooDBHandler.addItem(data);
+var storeName = 'list';
+DB.addItem(storeName, data);
 ```
 
-#### getItem(key, successCallback?)
+#### getItem(storeName, key, successCallback?)
 
 ```javascript
 function dosomething(data) {
   console.log(data);
 }
-fooDBHandler.getItem(1, dosomething);
+var storeName = 'list';
+DB.getItem(storeName, 1, dosomething);
 // data's value
 ```
 
 * the key should be a number, which matched to db's id
 
-#### getConditionItem(condition, whether, successCallback?)
+#### getConditionItem(storeName, condition, whether, successCallback?)
 
 ```javascript
-fooDBHandler.getConditionItem(condition, whether, successCallback?);
+var storeName = 'list';
+DB.getConditionItem(storeName, condition, whether, successCallback?);
 ```
 
-* whether is Boolean
-* `condition` should be a boolean-condition, for example:
+* whether is `Boolean` type
+* `condition` should be a **boolean-condition**, for example:
 
 ```javascript
-var dbConfig = {
+var DBConfig = {
   name: 'JustToDo',
-  version: '11',
-  key: 'id',
-  storeName: 'list',
-  initialData: [
-    { id: 0, event: 0, finished: true, date: 0 }
+  version: '23',
+  storeConfig: [
+    {
+      storeName: 'list',
+      key: 'id',
+      initialData: [
+        { id: 0, event: 'JustDemo', finished: true, date: 0 } // just for demo, not actual use
+      ]
+    }
   ]
 };
-
-fooDBHandler.getConditionItem('true', key, successCallback);
+var storeName = 'list';
+DB.getConditionItem(storeName, 'true', key, successCallback);
 ```
 
-#### getAll(successCallback?)
+#### getAll(storeName, successCallback?)
 
 ```javascript
 function doSomething(dataArr) {
   console.log(dataArr);
 }
-fooDBHandler.getAll(doSomething);
+var storeName = 'list';
+DB.getAll(storeName, doSomething);
 // dataArr's value
 ```
 
-#### removeItem(key, successCallback?)
+#### removeItem(storeName, key, successCallback?)
 
 * the **key should be number type**, which matched to db's key.
 
 ```javascript
-fooDBHandler.removeItem(1);
+var storeName = 'list';
+DB.removeItem(storeName, 1);
 ```
 
-#### removeConditionItem(condition, whether, successCallback?)
+#### removeConditionItem(storeName, condition, whether, successCallback?)
 
 ```javascript
-fooDBHandler.removeConditionItem(condition, whether, successCallback?);
+var storeName = 'list';
+DB.removeConditionItem(storeName, condition, whether, successCallback?);
 ```
 
 * whether is Boolean
 * `condition` should be a boolean-condition, for example:
 
 ```javascript
-var dbConfig = {
+var DBConfig = {
   name: 'JustToDo',
-  version: '11',
-  key: 'id',
-  storeName: 'list',
-  initialData: [
-    { id: 0, event: 0, finished: true, date: 0 }
+  version: '23',
+  storeConfig: [
+    {
+      storeName: 'list',
+      key: 'id',
+      initialData: [
+        { id: 0, event: 'JustDemo', finished: true, date: 0 } // just for demo, not actual use
+      ]
+    }
   ]
 };
-
-fooDBHandler.removeConditionItem('true', key, successCallback);
+var storeName = 'list';
+DB.removeConditionItem(storeName, 'true', key, successCallback);
 ```
 
-#### clear(successCallback?)
+#### clear(storeName, successCallback?)
 
 ```javascript
-fooDBHandler.clear();
+var storeName = 'list';
+DB.clear(storeName);
 ```
 
-#### updateItem(newData, successCallback?)
+#### updateItem(storeName, newData, successCallback?)
 
 ```javascript
-var newData = {
-  id: 10,
-  someEvent: 'play soccer',
-  finished: true,
-  userDate: new Date()
+var DBConfig = {
+  name: 'JustToDo',
+  version: '23',
+  storeConfig: [
+    {
+      storeName: 'list',
+      key: 'id',
+      initialData: [
+        { id: 0, event: 'JustDemo', finished: true, date: 0 } // just for demo, not actual use
+      ]
+    }
+  ]
 };
-fooDBHandler.updateItem(newData);
+var storeName = 'list';
+DB.updateItem(storeName, newData);
 ```
 
 ## example
 
-a simple todolist web-app, storage data in indexedDB (use indexeddb-crud): https://github.com/RayJune/JustToDo/blob/gh-pages/src/scripts/main.js
+a simple todolist web-app, storage data in indexedDB (use indexeddb-crud to handler 2 different objectStores): https://github.com/RayJune/JustToDo/blob/gh-pages/src/scripts/main.js
 
 ## author
 
