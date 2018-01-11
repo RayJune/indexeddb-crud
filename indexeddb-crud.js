@@ -33,27 +33,16 @@ var IndexedDBHandler = (function init() {
       // All other databases have been closed. Set everything up.
       _db = e.target.result;
       console.log('\u2713 onupgradeneeded in');
-      _parseJSONData(config.storeConfig, 'storeName').forEach(function detectStoreName(storeConfig, index) {
-        if (!(_db.objectStoreNames.contains(storeConfig.storeName))) {
-          _createObjectStore(storeConfig);
-        }
-      });
+      _createObjectStoreHandler(config.storeConfig);
     };
 
     openRequest.onsuccess = function openSuccess(e) {
-      var objectStoreList = _parseJSONData(config.storeConfig, 'storeName');
-
       _db = e.target.result;
-      objectStoreList.forEach(function detectStoreName(storeConfig, index) {
-        if (index === (objectStoreList.length - 1)) {
-          _getPresentKey(storeConfig.storeName, function () {
-            successCallback();
-            console.log('\u2713 open indexedDB success');
-          });
-        } else {
-          _getPresentKey(storeConfig.storeName);
-        }
-      });
+      _db.onversionchange = function versionchangeHandler() {
+        _db.close();
+        window.alert('A new version of this page is ready. Please reload');
+      };
+      _openSuccessCallbackHandler(config.storeConfig, successCallback);
     };
 
     // use error events bubble to handle all error events
@@ -64,11 +53,56 @@ var IndexedDBHandler = (function init() {
     };
   }
 
+  function _openSuccessCallbackHandler(configStoreConfig, successCallback) {
+    var objectStoreList = _parseJSONData(configStoreConfig, 'storeName');
+
+    objectStoreList.forEach(function detectStoreName(storeConfig, index) {
+      if (index === (objectStoreList.length - 1)) {
+        _getPresentKey(storeConfig.storeName, function () {
+          successCallback();
+          console.log('\u2713 open indexedDB success');
+        });
+      } else {
+        _getPresentKey(storeConfig.storeName);
+      }
+    });
+  }
+
+  // set present key value to _presentKey (the private property)
+  function _getPresentKey(storeName, successCallback) {
+    var transaction = _db.transaction([storeName]);
+
+    _presentKey[storeName] = 0;
+    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
+      var cursor = e.target.result;
+
+      if (cursor) {
+        _presentKey[storeName] = cursor.value.id;
+        cursor.continue();
+      }
+    };
+    transaction.oncomplete = function completeGetPresentKey() {
+      console.log('\u2713 now ' + storeName + '\'s max key is ' +  _presentKey[storeName]); // initial value is 0
+      if (successCallback) {
+        successCallback();
+        console.log('\u2713 openSuccessCallback' + ' finished');
+      }
+    };
+  }
+
+  function _createObjectStoreHandler(configStoreConfig) {
+    _parseJSONData(configStoreConfig, 'storeName').forEach(function detectStoreName(storeConfig) {
+      if (!(_db.objectStoreNames.contains(storeConfig.storeName))) {
+        _createObjectStore(storeConfig);
+      }
+    });
+  }
+
   function _createObjectStore(storeConfig) {
-    var objectStore = _db.createObjectStore(storeConfig.storeName, { keyPath: storeConfig.key, autoIncrement: true });
+    var store = _db.createObjectStore(storeConfig.storeName, { keyPath: storeConfig.key, autoIncrement: true });
 
     // Use transaction oncomplete to make sure the object Store creation is finished
-    objectStore.transaction.oncomplete = function addinitialData() {
+    store.transaction.oncomplete = function addinitialData() {
       console.log('\u2713 create ' + storeConfig.storeName + '\'s object store succeed');
       if (storeConfig.initialData) {
         // Store initial values in the newly created object store.
@@ -106,27 +140,6 @@ var IndexedDBHandler = (function init() {
     }
   }
 
-  // set present key value to _presentKey (the private property)
-  function _getPresentKey(storeName, successCallback) {
-    var transaction = _db.transaction([storeName]);
-
-    _presentKey[storeName] = 0;
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      var cursor = e.target.result;
-
-      if (cursor) {
-        _presentKey[storeName] = cursor.value.id;
-        cursor.continue();
-      } else {
-        console.log('\u2713 now ' + storeName + '\'s max key is ' +  _presentKey[storeName]); // initial value is 0
-        if (successCallback) {
-          successCallback();
-          console.log('\u2713 openSuccessCallback' + ' finished');
-        }
-      }
-    };
-  }
-
   function getLength(storeName) {
     return _presentKey[storeName];
   }
@@ -144,7 +157,7 @@ var IndexedDBHandler = (function init() {
     var addRequest = transaction.objectStore(storeName).add(newData);
 
     addRequest.onsuccess = function addSuccess() {
-      console.log('\u2713 add ' + storeName + '\'s '+ addRequest.source.keyPath + ' = ' + newData[addRequest.source.keyPath] + ' data succeed :)');
+      console.log('\u2713 add ' + storeName + '\'s ' + addRequest.source.keyPath + ' = ' + newData[addRequest.source.keyPath] + ' data succeed :)');
       if (successCallback) {
         successCallback(newData);
       }
@@ -182,11 +195,12 @@ var IndexedDBHandler = (function init() {
           }
         }
         cursor.continue();
-      } else {
-        console.log('\u2713 get ' + storeName + '\'s ' + condition + ' : ' + whether  + ' data success :)');
-        if (successCallback) {
-          successCallback(result);
-        }
+      }
+    };
+    transaction.oncomplete = function completeAddAll() {
+      console.log('\u2713 get ' + storeName + '\'s ' + condition + ' : ' + whether  + ' data success :)');
+      if (successCallback) {
+        successCallback(result);
       }
     };
   }
@@ -201,11 +215,12 @@ var IndexedDBHandler = (function init() {
       if (cursor) {
         result.push(cursor.value);
         cursor.continue();
-      } else {
-        console.log('\u2713 get ' + storeName + '\'s ' + 'all data success :)');
-        if (successCallback) {
-          successCallback(result);
-        }
+      }
+    };
+    transaction.oncomplete = function completeGetAll() {
+      console.log('\u2713 get ' + storeName + '\'s ' + 'all data success :)');
+      if (successCallback) {
+        successCallback(result);
       }
     };
   }
@@ -239,11 +254,12 @@ var IndexedDBHandler = (function init() {
           }
         }
         cursor.continue();
-      } else {
-        console.log('\u2713 remove ' + storeName + '\'s ' + condition + ' : ' + whether  + ' data success :)');
-        if (successCallback) {
-          successCallback();
-        }
+      }
+    };
+    transaction.oncomplete = function completeRemoveWhether() {
+      console.log('\u2713 remove ' + storeName + '\'s ' + condition + ' : ' + whether  + ' data success :)');
+      if (successCallback) {
+        successCallback();
       }
     };
   }
@@ -257,11 +273,12 @@ var IndexedDBHandler = (function init() {
       if (cursor) {
         cursor.delete();
         cursor.continue();
-      } else {
-        console.log('\u2713 clear ' + storeName + '\'s ' + 'all data success :)');
-        if (successCallback) {
-          successCallback('clear all data success');
-        }
+      }
+    };
+    transaction.oncomplete = function completeClear() {
+      console.log('\u2713 clear ' + storeName + '\'s ' + 'all data success :)');
+      if (successCallback) {
+        successCallback('clear all data success');
       }
     };
   }

@@ -1,6 +1,6 @@
 # indexedDB-CRUD
 
-indexedDB-CRUD packs obscure indexedDB CRUD methods to a really friendly succinct interface. And offer **multi-objectStores CRUD handler**.
+indexedDB-CRUD packs obscure indexedDB CRUD methods to a really friendly succinct interface. And offer **multi-objectStore CRUD handler**.
 
 If you want to operate **one or more indexedDB objectStore**, just `DB.open(config, openSuccessCallback)`, and *you'll get a indexedDB-crud handler* when its `openSuccessCallback` finished.
 
@@ -21,12 +21,12 @@ npm install indexeddb-crud --save
 
 * open(config, openSuccessCallback, openFailCallback)
 
-* getLength(storeName)
-* getNewKey(storeName)
-
 ### common
 
 get:
+
+* getLength(storeName)
+* getNewKey(storeName)
 
 * getItem(storeName, key, successCallback?)
 * getConditionItem(storeName, condition, whether, successCallback?)
