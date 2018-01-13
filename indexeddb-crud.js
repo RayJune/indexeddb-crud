@@ -123,7 +123,7 @@ var IndexedDBHandler = (function init() {
       };
     });
     transaction.oncomplete = function addAllDataDone() {
-      console.log('\u2713 add all' + storeName  + '\'s initial data done :)');
+      console.log('\u2713 add all ' + storeName  + '\'s initial data done :)');
       _getPresentKey(storeName);
     };
   }
@@ -198,7 +198,7 @@ var IndexedDBHandler = (function init() {
       }
     };
     transaction.oncomplete = function completeAddAll() {
-      console.log('\u2713 get ' + storeName + '\'s ' + condition + ' : ' + whether  + ' data success :)');
+      console.log('\u2713 get ' + storeName + '\'s ' + condition + ' = ' + whether  + ' data success :)');
       if (successCallback) {
         successCallback(result);
       }
@@ -257,7 +257,7 @@ var IndexedDBHandler = (function init() {
       }
     };
     transaction.oncomplete = function completeRemoveWhether() {
-      console.log('\u2713 remove ' + storeName + '\'s ' + condition + ' : ' + whether  + ' data success :)');
+      console.log('\u2713 remove ' + storeName + '\'s ' + condition + ' = ' + whether  + ' data success :)');
       if (successCallback) {
         successCallback();
       }
