@@ -1,9 +1,11 @@
 {
   "name": "indexeddb-crud",
-  "version": "3.2.0",
+  "version": "4.0.0",
   "description": "pack complex indexedDB CRUD methods to a friendly simple interface",
-  "main": "indexeddb-crud.js",
+  "main": "index.js",
   "scripts": {
+    "build": "babel src -d dist -s",
+    "min": "uglifyjs ./dist/indexeddb-crud.js -m -c -o ./dist/indexeddb-crud.min.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,11 +24,13 @@
   },
   "homepage": "https://github.com/RayJune/indexeddb-crud#readme",
   "devDependencies": {
+    "babel-cli": "^6.26.0",
     "babel-eslint": "^8.0.1",
-    "browserify": "^14.5.0",
+    "babel-preset-env": "^1.6.1",
     "eslint": "^4.13.1",
-    "eslint-config-airbnb-es5": "^1.2.0",
+    "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-react": "^7.5.1"
+    "eslint-plugin-react": "^7.5.1",
+    "uglify-js": "^3.2.2"
   }
 }
