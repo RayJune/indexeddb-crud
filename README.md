@@ -6,7 +6,8 @@ If you want to operate **one or more indexedDB objectStore**, just `DB.open(conf
 
 Hope you keep in mind that:
 
-* `config`'s format should be correct
+* `config`'s **format should be correct**
+* if you not input `storeName` explicitly in API, your config's first `sotreName` will be the **default storeName**
 * indexedDB object store can *only hold JavaScript objects*. The objects *must have a property with the same name as the key path*
 
 ## Installation
@@ -25,26 +26,26 @@ npm install indexeddb-crud --save
 
 get:
 
-* getLength(storeName)
-* getNewKey(storeName)
+* getLength(storeName?)
+* getNewKey(storeName?)
 
-* getItem(storeName, key, successCallback?)
-* getConditionItem(storeName, condition, whether, successCallback?)
-* getAll(storeName, successCallback?)
+* getItem(key, successCallback?, storeName?)
+* getConditionItem(condition, whether, successCallback?, storeName?)
+* getAll(successCallback?, storeName?)
 
 add:
 
-* addItem(storeName, data, successCallback?)
+* addItem(data, successCallback?, storeName?)
 
 remove:
 
-* removeItem(storeName, key, successCallback?)
-* removeConditionItem(storeName, condition, whether, successCallback?)
-* clear(storeName, successCallback?)
+* removeItem(key, successCallback?, storeName?)
+* removeConditionItem(condition, whether, successCallback?, storeName?)
+* clear(successCallback?, storeName?)
 
 update:
 
-* updateItem(storeName, newData, successCallback?)
+* updateItem(newData, successCallback?, storeName?)
 
 ## usage
 
@@ -52,6 +53,9 @@ update:
 
 ```javascript
 var DB = require('indexeddb-crud');
+
+// or ES6
+import DB from 'indexeddb-crud';
 ```
 
 ### API
@@ -142,23 +146,27 @@ function clickHandler() {
 DB.open(config, addEvents);
 ```
 
-#### getLength(storeName)
+#### getLength(storeName?)
 
 ```javascript
 var storeName = 'list';
 var randomIndex = Math.floor(DB.getLength(storeName) * Math.random());
+// or use the default storeName
+var randomIndex = Math.floor(DB.getLength() * Math.random());
 ```
 
-#### getNewKey(storeName)
+#### getNewKey(storeName?)
 
 ```javascript
 var storeName = 'list';
 DB.getNewKey(storeName);
+// or use the default storeName
+DB.getNewKey();
 ```
 
-You will need it in `addItem(storeName, )`.
+You will need it in `addItem()`.
 
-#### addItem(storeName, data, successCallback?)
+#### addItem(data, successCallback?, storeName?)
 
 * data's structure should at least contains number type key.
 
@@ -171,28 +179,26 @@ var data = {
   finished: false 
 };
 var storeName = 'list';
-DB.addItem(storeName, data);
+DB.addItem(data, null, storeName);
+// or use the default storeName
+DB.addItem(data);
 ```
 
-#### getItem(storeName, key, successCallback?)
+#### getItem(key, successCallback?, storeName?)
 
 ```javascript
-function dosomething(data) {
+function doSomething(data) {
   console.log(data);
 }
 var storeName = 'list';
-DB.getItem(storeName, 1, dosomething);
-// data's value
+DB.getItem(1, doSomething, storeName);
+// or use the default storeName
+DB.getItem(1, doSomething);
 ```
 
 * the key should be a number, which matched to db's id
 
-#### getConditionItem(storeName, condition, whether, successCallback?)
-
-```javascript
-var storeName = 'list';
-DB.getConditionItem(storeName, condition, whether, successCallback?);
-```
+#### getConditionItem(condition, whether, successCallback?, storeName?)
 
 * whether is `Boolean` type
 * `condition` should be a **boolean-condition**, for example:
@@ -212,35 +218,35 @@ var DBConfig = {
   ]
 };
 var storeName = 'list';
-DB.getConditionItem(storeName, 'true', key, successCallback);
+DB.getConditionItem('finished', false, doSomething,storeName);
+// or use the default storeName
+DB.getConditionItem('finished', false, doSomething);
 ```
 
-#### getAll(storeName, successCallback?)
+#### getAll(successCallback?, storeName?)
 
 ```javascript
 function doSomething(dataArr) {
   console.log(dataArr);
 }
 var storeName = 'list';
-DB.getAll(storeName, doSomething);
-// dataArr's value
+DB.getAll(doSomething, storeName);
+// or use the default storeName
+DB.getAll(doSomething);
 ```
 
-#### removeItem(storeName, key, successCallback?)
+#### removeItem(key, successCallback?, storeName?)
 
 * the **key should be number type**, which matched to db's key.
 
 ```javascript
 var storeName = 'list';
-DB.removeItem(storeName, 1);
+DB.removeItem(1, doSomething, storeName);
+// or use the default storeName
+DB.removeItem(1, doSomething);
 ```
 
-#### removeConditionItem(storeName, condition, whether, successCallback?)
-
-```javascript
-var storeName = 'list';
-DB.removeConditionItem(storeName, condition, whether, successCallback?);
-```
+#### removeConditionItem(condition, whether, successCallback?, storeName?)
 
 * whether is Boolean
 * `condition` should be a boolean-condition, for example:
@@ -260,17 +266,21 @@ var DBConfig = {
   ]
 };
 var storeName = 'list';
-DB.removeConditionItem(storeName, 'true', key, successCallback);
+DB.removeConditionItem('true', successCallback, storeName);
+// or use the default storeName
+DB.removeConditionItem('true', successCallback);
 ```
 
-#### clear(storeName, successCallback?)
+#### clear(successCallback?, storeName?)
 
 ```javascript
 var storeName = 'list';
-DB.clear(storeName);
+DB.clear(doSomething, storeName);
+// or use the default storeName
+DB.clear(doSomething);
 ```
 
-#### updateItem(storeName, newData, successCallback?)
+#### updateItem(newData, successCallback?, storeName?)
 
 ```javascript
 var DBConfig = {
@@ -287,7 +297,9 @@ var DBConfig = {
   ]
 };
 var storeName = 'list';
-DB.updateItem(storeName, newData);
+DB.updateItem(newData, doSomething, storeName);
+// or use the default storeName
+DB.updateItem(newData, doSomething);
 ```
 
 ## example

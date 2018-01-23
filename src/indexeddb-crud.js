@@ -57,13 +57,15 @@ const IndexedDBHandler = (() => {
     const objectStoreList = _parseJSONData(configStoreConfig, 'storeName');
 
     objectStoreList.forEach((storeConfig, index) => {
+      if (index === 0) {
+        _defaultStoreName = storeConfig.storeName; // PUNCHLINE: the last storeName is defaultStoreName
+      }
       if (index === (objectStoreList.length - 1)) {
         _getPresentKey(storeConfig.storeName, () => {
           successCallback();
           console.log('\u2713 open indexedDB success');
         });
       } else {
-        _defaultStoreName = storeConfig.storeName;
         _getPresentKey(storeConfig.storeName);
       }
     });
@@ -146,7 +148,7 @@ const IndexedDBHandler = (() => {
   }
 
   function getNewKey(storeName = _defaultStoreName) {
-    _presentKey[storeName] = 1;
+    _presentKey[storeName] += 1;
 
     return _presentKey[storeName];
   }
