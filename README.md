@@ -22,12 +22,16 @@ npm install indexeddb-crud --save
 
 * open(config, openSuccessCallback, openFailCallback)
 
-### common
+**Only you open it, you can use these synchronous&asynchronous API**.
 
-get:
+### synchronous API:
 
 * getLength(storeName?)
 * getNewKey(storeName?)
+
+### asynchronous API
+
+get:
 
 * getItem(key, successCallback?, storeName?)
 * getConditionItem(condition, whether, successCallback?, storeName?)
@@ -75,10 +79,10 @@ config = {
       storeName: '',
       key: '',
       storeConfig: [
-        ...(must have key property, number type)
+        // must have key property, number type
       ]
     },
-    ...
+    // one or more storeConfig object
   ]
 } 
 ```
@@ -94,7 +98,7 @@ var DBConfig = {
       storeName: 'list',
       key: 'id',
       initialData: [
-        { id: 0, event: 'JustDemo', finished: true, date: 0 } // just for demo, not actual use
+        { id: 0, event: 'JustDemo', finished: true } // just for demo, not actual use
       ]
     }
   ]
@@ -112,7 +116,7 @@ var DBConfig = {
       storeName: 'list',
       key: 'id',
       initialData: [
-        { id: 1, event: 'JustDemo', finished: true, date: 0 }
+        { id: 1, event: 'JustDemo', finished: true }
       ]
     },
     {
@@ -149,19 +153,23 @@ DB.open(config, addEvents);
 #### getLength(storeName?)
 
 ```javascript
+// If you have only 1 objectSotre, suggest use the default storeName
+var randomIndex = Math.floor(DB.getLength() * Math.random());
+
+// or pass storeName explicitly
 var storeName = 'list';
 var randomIndex = Math.floor(DB.getLength(storeName) * Math.random());
-// or use the default storeName
-var randomIndex = Math.floor(DB.getLength() * Math.random());
 ```
 
 #### getNewKey(storeName?)
 
 ```javascript
+// If you have only 1 objectSotre, suggest use the default storeName
+DB.getNewKey();
+
+// or pass storeName explicitly
 var storeName = 'list';
 DB.getNewKey(storeName);
-// or use the default storeName
-DB.getNewKey();
 ```
 
 You will need it in `addItem()`.
@@ -178,10 +186,13 @@ var data = {
   event: 'play soccer', 
   finished: false 
 };
+
+// If you have only 1 objectSotre, suggest use the default storeName
+DB.addItem(data);
+
+// or pass storeName explicitly
 var storeName = 'list';
 DB.addItem(data, null, storeName);
-// or use the default storeName
-DB.addItem(data);
 ```
 
 #### getItem(key, successCallback?, storeName?)
@@ -190,10 +201,13 @@ DB.addItem(data);
 function doSomething(data) {
   console.log(data);
 }
+
+// If you have only 1 objectSotre, suggest use the default storeName 
+DB.getItem(1, doSomething);
+
+// or pass storeName explicitly
 var storeName = 'list';
 DB.getItem(1, doSomething, storeName);
-// or use the default storeName
-DB.getItem(1, doSomething);
 ```
 
 * the key should be a number, which matched to db's id
@@ -212,15 +226,18 @@ var DBConfig = {
       storeName: 'list',
       key: 'id',
       initialData: [
-        { id: 0, event: 'JustDemo', finished: true, date: 0 } // just for demo, not actual use
+        { id: 0, event: 'JustDemo', finished: true } // just for demo, not actual use
       ]
     }
   ]
 };
+
+// If you have only 1 objectSotre, suggest use the default storeName 
+DB.getConditionItem('finished', false, doSomething);
+
+// or pass storeName explicitly
 var storeName = 'list';
 DB.getConditionItem('finished', false, doSomething,storeName);
-// or use the default storeName
-DB.getConditionItem('finished', false, doSomething);
 ```
 
 #### getAll(successCallback?, storeName?)
@@ -229,10 +246,13 @@ DB.getConditionItem('finished', false, doSomething);
 function doSomething(dataArr) {
   console.log(dataArr);
 }
+
+// If you have only 1 objectSotre, suggest use the default storeName 
+DB.getAll(doSomething);
+
+// or pass storeName explicitly
 var storeName = 'list';
 DB.getAll(doSomething, storeName);
-// or use the default storeName
-DB.getAll(doSomething);
 ```
 
 #### removeItem(key, successCallback?, storeName?)
@@ -240,10 +260,12 @@ DB.getAll(doSomething);
 * the **key should be number type**, which matched to db's key.
 
 ```javascript
+// If you have only 1 objectSotre, suggest use the default storeName 
+DB.removeItem(1, doSomething);
+
+// or pass storeName explicitly
 var storeName = 'list';
 DB.removeItem(1, doSomething, storeName);
-// or use the default storeName
-DB.removeItem(1, doSomething);
 ```
 
 #### removeConditionItem(condition, whether, successCallback?, storeName?)
@@ -260,24 +282,29 @@ var DBConfig = {
       storeName: 'list',
       key: 'id',
       initialData: [
-        { id: 0, event: 'JustDemo', finished: true, date: 0 } // just for demo, not actual use
+        { id: 0, event: 'JustDemo', finished: true } // just for demo, not actual use
       ]
     }
   ]
 };
+
+// If you have only 1 objectSotre, suggest use the default storeName 
+DB.removeConditionItem('true', successCallback);
+
+// or pass storeName explicitly
 var storeName = 'list';
 DB.removeConditionItem('true', successCallback, storeName);
-// or use the default storeName
-DB.removeConditionItem('true', successCallback);
 ```
 
 #### clear(successCallback?, storeName?)
 
 ```javascript
+// If you have only 1 objectSotre, suggest use the default storeName
+DB.clear(doSomething);
+
+// or pass storeName explicitly
 var storeName = 'list';
 DB.clear(doSomething, storeName);
-// or use the default storeName
-DB.clear(doSomething);
 ```
 
 #### updateItem(newData, successCallback?, storeName?)
@@ -291,15 +318,18 @@ var DBConfig = {
       storeName: 'list',
       key: 'id',
       initialData: [
-        { id: 0, event: 'JustDemo', finished: true, date: 0 } // just for demo, not actual use
+        { id: 0, event: 'JustDemo', finished: true } // just for demo, not actual use
       ]
     }
   ]
 };
+
+// If you have only 1 objectSotre, suggest use the default storeName
+DB.updateItem(newData, doSomething);
+
+// or pass storeName explicitly
 var storeName = 'list';
 DB.updateItem(newData, doSomething, storeName);
-// or use the default storeName
-DB.updateItem(newData, doSomething);
 ```
 
 ## example
