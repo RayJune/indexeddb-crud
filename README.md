@@ -20,36 +20,36 @@ npm install indexeddb-crud --save
 
 ### first step
 
-* open(config, openSuccessCallback, openFailCallback)
+* [open(config, openSuccessCallback, openFailCallback)](https://github.com/RayJune/indexeddb-crud#openconfig-successcallback-failcallback)
 
 **Only you open it, you can use these synchronous&asynchronous API**.
 
 ### synchronous API:
 
-* getLength(storeName?)
-* getNewKey(storeName?)
+* [getLength(storeName?)](https://github.com/RayJune/indexeddb-crud#getlengthstorename)
+* [getNewKey(storeName?)](https://github.com/RayJune/indexeddb-crud#getlengthstorename)
 
 ### asynchronous API
 
 get:
 
-* getItem(key, successCallback?, storeName?)
-* getConditionItem(condition, whether, successCallback?, storeName?)
-* getAll(successCallback?, storeName?)
+* [getItem(key, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#getitemkey-successcallback-storename)
+* [getConditionItem(condition, whether, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#getconditionitemcondition-whether-successcallback-storename)
+* [getAll(successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#getallsuccesscallback-storename)
 
 add:
 
-* addItem(data, successCallback?, storeName?)
+* [addItem(data, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#additemdata-successcallback-storename)
 
 remove:
 
-* removeItem(key, successCallback?, storeName?)
-* removeConditionItem(condition, whether, successCallback?, storeName?)
-* clear(successCallback?, storeName?)
+* [removeItem(key, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#removeitemkey-successcallback-storename)
+* [removeConditionItem(condition, whether, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#removeconditionitemcondition-whether-successcallback-storename)
+* [clear(successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#clearsuccesscallback-storename)
 
 update:
 
-* updateItem(newData, successCallback?, storeName?)
+* [updateItem(newData, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#updateitemnewdata-successcallback-storename)
 
 ## usage
 
@@ -343,3 +343,4 @@ a simple todolist web-app, storage data in indexedDB (use indexeddb-crud to hand
 ## License
 
 MIT
+
