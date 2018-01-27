@@ -204,14 +204,8 @@ var IndexedDBHandler = function () {
       var cursor = e.target.result;
 
       if (cursor) {
-        if (whether) {
-          if (cursor.value[condition]) {
-            result.push(cursor.value);
-          }
-        } else if (!whether) {
-          if (!cursor.value[condition]) {
-            result.push(cursor.value);
-          }
+        if (cursor.value[condition] && whether) {
+          result.push(cursor.value);
         }
         cursor.continue();
       }
@@ -269,14 +263,8 @@ var IndexedDBHandler = function () {
       var cursor = e.target.result;
 
       if (cursor) {
-        if (whether) {
-          if (cursor.value[condition]) {
-            cursor.delete();
-          }
-        } else if (!whether) {
-          if (!cursor.value[condition]) {
-            cursor.delete();
-          }
+        if (cursor.value[condition] && whether) {
+          result.push(cursor.value);
         }
         cursor.continue();
       }
