@@ -188,8 +188,14 @@ const IndexedDBHandler = (() => {
       const cursor = e.target.result;
 
       if (cursor) {
-        if (cursor.value[condition] && whether) {
-          result.push(cursor.value);
+        if (whether) {
+          if (cursor.value[condition]) {
+            result.push(cursor.value);
+          }
+        } else {
+          if (!cursor.value[condition]) {
+            result.push(cursor.value);
+          }
         }
         cursor.continue();
       }
@@ -242,7 +248,7 @@ const IndexedDBHandler = (() => {
 
       if (cursor) {
         if (cursor.value[condition] && whether) {
-          result.push(cursor.value);
+          cursor.delete();
         }
         cursor.continue();
       }
