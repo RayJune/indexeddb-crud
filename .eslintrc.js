@@ -6,7 +6,7 @@ module.exports = {
   "rules": {
       "no-underscore-dangle": 0,
       "no-use-before-define": ["error", { "functions": false, "classes": true }],
-      "max-len": flase
+      "max-len": 0
       // "no-param-reassign": 0
   },
   "plugins": [
