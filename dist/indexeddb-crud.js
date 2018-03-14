@@ -29,22 +29,26 @@ var IndexedDBHandler = function () {
     var openRequest = window.indexedDB.open(config.name, config.version); // open indexedDB
 
     // an onblocked event is fired until they are closed or reloaded
-    openRequest.onblocked = function blockedSchemeUp() {
+    openRequest.onblocked = function () {
       // If some other tab is loaded with the database, then it needs to be closed before we can proceed.
       window.alert('Please close all other tabs with this site open');
     };
 
     // Creating or updating the version of the database
-    openRequest.onupgradeneeded = function schemaUp(e) {
+    openRequest.onupgradeneeded = function (_ref) {
+      var target = _ref.target;
+
       // All other databases have been closed. Set everything up.
-      _db = e.target.result;
+      _db = target.result;
       console.log('\u2713 onupgradeneeded in');
       _createObjectStoreHandler(config.storeConfig);
     };
 
-    openRequest.onsuccess = function openSuccess(e) {
-      _db = e.target.result;
-      _db.onversionchange = function versionchangeHandler() {
+    openRequest.onsuccess = function (_ref2) {
+      var target = _ref2.target;
+
+      _db = target.result;
+      _db.onversionchange = function () {
         _db.close();
         window.alert('A new version of this page is ready. Please reload');
       };
@@ -52,10 +56,12 @@ var IndexedDBHandler = function () {
     };
 
     // use error events bubble to handle all error events
-    openRequest.onerror = function openError(e) {
+    openRequest.onerror = function (_ref3) {
+      var target = _ref3.target;
+
       window.alert('Something is wrong with indexedDB, for more information, checkout console');
-      console.log(e.target.error);
-      throw new Error(e.target.error);
+      console.log(target.error);
+      throw new Error(target.error);
     };
   }
 
@@ -82,15 +88,17 @@ var IndexedDBHandler = function () {
     var transaction = _db.transaction([storeName]);
 
     _presentKey[storeName] = 0;
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      var cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = function (_ref4) {
+      var target = _ref4.target;
+
+      var cursor = target.result;
 
       if (cursor) {
         _presentKey[storeName] = cursor.value.id;
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeGetPresentKey() {
+    transaction.oncomplete = function () {
       console.log('\u2713 now ' + storeName + ' \'s max key is ' + _presentKey[storeName]); // initial value is 0
       if (successCallback) {
         successCallback();
@@ -111,7 +119,7 @@ var IndexedDBHandler = function () {
     var store = _db.createObjectStore(storeConfig.storeName, { keyPath: storeConfig.key, autoIncrement: true });
 
     // Use transaction oncomplete to make sure the object Store creation is finished
-    store.transaction.oncomplete = function addinitialData() {
+    store.transaction.oncomplete = function () {
       console.log('\u2713 create ' + storeConfig.storeName + ' \'s object store succeed');
       if (storeConfig.initialData) {
         // Store initial values in the newly created object store.
@@ -127,11 +135,11 @@ var IndexedDBHandler = function () {
     _parseJSONData(initialData, 'initial').forEach(function (data, index) {
       var addRequest = objectStore.add(data);
 
-      addRequest.onsuccess = function addInitialSuccess() {
+      addRequest.onsuccess = function () {
         console.log('\u2713 add initial data[' + index + '] successed');
       };
     });
-    transaction.oncomplete = function addAllDataDone() {
+    transaction.oncomplete = function () {
       console.log('\u2713 add all ' + storeName + ' \'s initial data done :)');
       _getPresentKey(storeName);
     };
@@ -171,7 +179,7 @@ var IndexedDBHandler = function () {
     var transaction = _db.transaction([storeName], 'readwrite');
     var addRequest = transaction.objectStore(storeName).add(newData);
 
-    addRequest.onsuccess = function addSuccess() {
+    addRequest.onsuccess = function () {
       console.log('\u2713 add ' + storeName + '\'s ' + addRequest.source.keyPath + '  = ' + newData[addRequest.source.keyPath] + ' data succeed :)');
       if (successCallback) {
         successCallback(newData);
@@ -185,7 +193,7 @@ var IndexedDBHandler = function () {
     var transaction = _db.transaction([storeName]);
     var getRequest = transaction.objectStore(storeName).get(parseInt(key, 10)); // get it by index
 
-    getRequest.onsuccess = function getSuccess() {
+    getRequest.onsuccess = function () {
       console.log('\u2713 get ' + storeName + '\'s ' + getRequest.source.keyPath + ' = ' + key + ' data success :)');
       if (successCallback) {
         successCallback(getRequest.result);
@@ -200,8 +208,10 @@ var IndexedDBHandler = function () {
     var transaction = _db.transaction([storeName]);
     var result = []; // use an array to storage eligible data
 
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      var cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = function (_ref5) {
+      var target = _ref5.target;
+
+      var cursor = target.result;
 
       if (cursor) {
         if (cursor.value[condition] === whether) {
@@ -210,7 +220,7 @@ var IndexedDBHandler = function () {
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeAddAll() {
+    transaction.oncomplete = function () {
       console.log('\u2713 get ' + storeName + '\'s ' + condition + ' = ' + whether + ' data success :)');
       if (successCallback) {
         successCallback(result);
@@ -224,15 +234,17 @@ var IndexedDBHandler = function () {
     var transaction = _db.transaction([storeName]);
     var result = [];
 
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      var cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = function (_ref6) {
+      var target = _ref6.target;
+
+      var cursor = target.result;
 
       if (cursor) {
         result.push(cursor.value);
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeGetAll() {
+    transaction.oncomplete = function () {
       console.log('\u2713 get ' + storeName + '\'s all data success :)');
       if (successCallback) {
         successCallback(result);
@@ -246,7 +258,7 @@ var IndexedDBHandler = function () {
     var transaction = _db.transaction([storeName], 'readwrite');
     var deleteRequest = transaction.objectStore(storeName).delete(key);
 
-    deleteRequest.onsuccess = function deleteSuccess() {
+    deleteRequest.onsuccess = function () {
       console.log('\u2713 remove ' + storeName + '\'s  ' + deleteRequest.source.keyPath + ' = ' + key + ' data success :)');
       if (successCallback) {
         successCallback(key);
@@ -259,8 +271,10 @@ var IndexedDBHandler = function () {
 
     var transaction = _db.transaction([storeName], 'readwrite');
 
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      var cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = function (_ref7) {
+      var target = _ref7.target;
+
+      var cursor = target.result;
 
       if (cursor) {
         if (cursor.value[condition] === whether) {
@@ -269,7 +283,7 @@ var IndexedDBHandler = function () {
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeRemoveWhether() {
+    transaction.oncomplete = function () {
       console.log('\u2713 remove ' + storeName + '\'s ' + condition + ' = ' + whether + ' data success :)');
       if (successCallback) {
         successCallback();
@@ -282,15 +296,17 @@ var IndexedDBHandler = function () {
 
     var transaction = _db.transaction([storeName], 'readwrite');
 
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      var cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = function (_ref8) {
+      var target = _ref8.target;
+
+      var cursor = target.result;
 
       if (cursor) {
         cursor.delete();
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeClear() {
+    transaction.oncomplete = function () {
       console.log('\u2713 clear ' + storeName + '\'s all data success :)');
       if (successCallback) {
         successCallback('clear all data success');
@@ -305,7 +321,7 @@ var IndexedDBHandler = function () {
     var transaction = _db.transaction([storeName], 'readwrite');
     var putRequest = transaction.objectStore(storeName).put(newData);
 
-    putRequest.onsuccess = function putSuccess() {
+    putRequest.onsuccess = function () {
       console.log('\u2713 update ' + storeName + '\'s ' + putRequest.source.keyPath + '  = ' + newData[putRequest.source.keyPath] + ' data success :)');
       if (successCallback) {
         successCallback(newData);

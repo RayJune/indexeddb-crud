@@ -23,22 +23,22 @@ const IndexedDBHandler = (() => {
     const openRequest = window.indexedDB.open(config.name, config.version); // open indexedDB
 
     // an onblocked event is fired until they are closed or reloaded
-    openRequest.onblocked = function blockedSchemeUp() {
+    openRequest.onblocked = () => {
       // If some other tab is loaded with the database, then it needs to be closed before we can proceed.
       window.alert('Please close all other tabs with this site open');
     };
 
     // Creating or updating the version of the database
-    openRequest.onupgradeneeded = function schemaUp(e) {
+    openRequest.onupgradeneeded = ({ target }) => {
       // All other databases have been closed. Set everything up.
-      _db = e.target.result;
+      _db = target.result;
       console.log('\u2713 onupgradeneeded in');
       _createObjectStoreHandler(config.storeConfig);
     };
 
-    openRequest.onsuccess = function openSuccess(e) {
-      _db = e.target.result;
-      _db.onversionchange = function versionchangeHandler() {
+    openRequest.onsuccess = ({ target }) => {
+      _db = target.result;
+      _db.onversionchange = () => {
         _db.close();
         window.alert('A new version of this page is ready. Please reload');
       };
@@ -46,10 +46,10 @@ const IndexedDBHandler = (() => {
     };
 
     // use error events bubble to handle all error events
-    openRequest.onerror = function openError(e) {
+    openRequest.onerror = ({ target }) => {
       window.alert('Something is wrong with indexedDB, for more information, checkout console');
-      console.log(e.target.error);
-      throw new Error(e.target.error);
+      console.log(target.error);
+      throw new Error(target.error);
     };
   }
 
@@ -76,15 +76,15 @@ const IndexedDBHandler = (() => {
     const transaction = _db.transaction([storeName]);
 
     _presentKey[storeName] = 0;
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      const cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
+      const cursor = target.result;
 
       if (cursor) {
         _presentKey[storeName] = cursor.value.id;
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeGetPresentKey() {
+    transaction.oncomplete = () => {
       console.log(`\u2713 now ${storeName} 's max key is ${_presentKey[storeName]}`); // initial value is 0
       if (successCallback) {
         successCallback();
@@ -105,7 +105,7 @@ const IndexedDBHandler = (() => {
     const store = _db.createObjectStore(storeConfig.storeName, { keyPath: storeConfig.key, autoIncrement: true });
 
     // Use transaction oncomplete to make sure the object Store creation is finished
-    store.transaction.oncomplete = function addinitialData() {
+    store.transaction.oncomplete = () => {
       console.log(`\u2713 create ${storeConfig.storeName} 's object store succeed`);
       if (storeConfig.initialData) {
         // Store initial values in the newly created object store.
@@ -121,11 +121,11 @@ const IndexedDBHandler = (() => {
     _parseJSONData(initialData, 'initial').forEach((data, index) => {
       const addRequest = objectStore.add(data);
 
-      addRequest.onsuccess = function addInitialSuccess() {
+      addRequest.onsuccess = () => {
         console.log(`\u2713 add initial data[${index}] successed`);
       };
     });
-    transaction.oncomplete = function addAllDataDone() {
+    transaction.oncomplete = () => {
       console.log(`\u2713 add all ${storeName} 's initial data done :)`);
       _getPresentKey(storeName);
     };
@@ -159,7 +159,7 @@ const IndexedDBHandler = (() => {
     const transaction = _db.transaction([storeName], 'readwrite');
     const addRequest = transaction.objectStore(storeName).add(newData);
 
-    addRequest.onsuccess = function addSuccess() {
+    addRequest.onsuccess = () => {
       console.log(`\u2713 add ${storeName}'s ${addRequest.source.keyPath}  = ${newData[addRequest.source.keyPath]} data succeed :)`);
       if (successCallback) {
         successCallback(newData);
@@ -171,7 +171,7 @@ const IndexedDBHandler = (() => {
     const transaction = _db.transaction([storeName]);
     const getRequest = transaction.objectStore(storeName).get(parseInt(key, 10)); // get it by index
 
-    getRequest.onsuccess = function getSuccess() {
+    getRequest.onsuccess = () => {
       console.log(`\u2713 get ${storeName}'s ${getRequest.source.keyPath} = ${key} data success :)`);
       if (successCallback) {
         successCallback(getRequest.result);
@@ -184,8 +184,8 @@ const IndexedDBHandler = (() => {
     const transaction = _db.transaction([storeName]);
     const result = []; // use an array to storage eligible data
 
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      const cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
+      const cursor = target.result;
 
       if (cursor) {
         if (cursor.value[condition] === whether) {
@@ -194,7 +194,7 @@ const IndexedDBHandler = (() => {
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeAddAll() {
+    transaction.oncomplete = () => {
       console.log(`\u2713 get ${storeName}'s ${condition} = ${whether} data success :)`);
       if (successCallback) {
         successCallback(result);
@@ -206,15 +206,15 @@ const IndexedDBHandler = (() => {
     const transaction = _db.transaction([storeName]);
     const result = [];
 
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      const cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
+      const cursor = target.result;
 
       if (cursor) {
         result.push(cursor.value);
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeGetAll() {
+    transaction.oncomplete = () => {
       console.log(`\u2713 get ${storeName}'s all data success :)`);
       if (successCallback) {
         successCallback(result);
@@ -226,7 +226,7 @@ const IndexedDBHandler = (() => {
     const transaction = _db.transaction([storeName], 'readwrite');
     const deleteRequest = transaction.objectStore(storeName).delete(key);
 
-    deleteRequest.onsuccess = function deleteSuccess() {
+    deleteRequest.onsuccess = () => {
       console.log(`\u2713 remove ${storeName}'s  ${deleteRequest.source.keyPath} = ${key} data success :)`);
       if (successCallback) {
         successCallback(key);
@@ -237,8 +237,8 @@ const IndexedDBHandler = (() => {
   function removeWhetherConditionItem(condition, whether, successCallback, storeName = _defaultStoreName) {
     const transaction = _db.transaction([storeName], 'readwrite');
 
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      const cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
+      const cursor = target.result;
 
       if (cursor) {
         if (cursor.value[condition] === whether) {
@@ -247,7 +247,7 @@ const IndexedDBHandler = (() => {
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeRemoveWhether() {
+    transaction.oncomplete = () => {
       console.log(`\u2713 remove ${storeName}'s ${condition} = ${whether} data success :)`);
       if (successCallback) {
         successCallback();
@@ -258,15 +258,15 @@ const IndexedDBHandler = (() => {
   function clear(successCallback, storeName = _defaultStoreName) {
     const transaction = _db.transaction([storeName], 'readwrite');
 
-    _getAllRequest(transaction, storeName).onsuccess = function getAllSuccess(e) {
-      const cursor = e.target.result;
+    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
+      const cursor = target.result;
 
       if (cursor) {
         cursor.delete();
         cursor.continue();
       }
     };
-    transaction.oncomplete = function completeClear() {
+    transaction.oncomplete = () => {
       console.log(`\u2713 clear ${storeName}'s all data success :)`);
       if (successCallback) {
         successCallback('clear all data success');
@@ -279,7 +279,7 @@ const IndexedDBHandler = (() => {
     const transaction = _db.transaction([storeName], 'readwrite');
     const putRequest = transaction.objectStore(storeName).put(newData);
 
-    putRequest.onsuccess = function putSuccess() {
+    putRequest.onsuccess = () => {
       console.log(`\u2713 update ${storeName}'s ${putRequest.source.keyPath}  = ${newData[putRequest.source.keyPath]} data success :)`);
       if (successCallback) {
         successCallback(newData);
