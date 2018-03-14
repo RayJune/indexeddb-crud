@@ -127,7 +127,7 @@ function update(dbValue, newData, storeName) {
   return _promiseGenerator2.default.request(putRequest, successMessage, newData);
 }
 
-var crud = {
+exports.default = {
   get: get,
   getWhetherCondition: getWhetherCondition,
   getAll: getAll,
@@ -137,6 +137,4 @@ var crud = {
   clear: clear,
   update: update
 };
-
-exports.default = crud;
 //# sourceMappingURL=crud.js.map

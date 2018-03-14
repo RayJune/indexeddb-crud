@@ -1,3 +1,7 @@
+## v5.0.0
+
+Introduce Promise to asynchronous function, which is good at handling nested callback function(Especially in error handling).
+
 ## v4.0.0:
 
 Rewrite code in ES6, offer default storeName to simplify API, especially for single indexedDB objectStore handler(easier to use).

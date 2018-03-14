@@ -14,13 +14,15 @@ Hope you keep in mind that:
 
 ```npm scripts
 npm install indexeddb-crud --save
+
+yarn add indexeddb-crud
 ```
 
 ## API Overview
 
 ### first step
 
-* [open(config, openSuccessCallback, openFailCallback)](https://github.com/RayJune/indexeddb-crud#openconfig-successcallback-failcallback)
+* [open(config).then().catch()](https://github.com/RayJune/indexeddb-crud#openconfig-successcallback-failcallback)
 
 **Only you open it, you can use these synchronous&asynchronous API**.
 
@@ -31,25 +33,27 @@ npm install indexeddb-crud --save
 
 ### asynchronous API
 
+indexeddb-crud support for the ES6 Promises API, so you can use `then` & `catch` carefree.
+
 get:
 
-* [getItem(key, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#getitemkey-successcallback-storename)
+* [getItem(key, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#getitemkey-successcallback-storename)
 * [getConditionItem(condition, whether, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#getconditionitemcondition-whether-successcallback-storename)
-* [getAll(successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#getallsuccesscallback-storename)
+* [getAll(storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#getallsuccesscallback-storename)
 
 add:
 
-* [addItem(data, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#additemdata-successcallback-storename)
+* [addItem(data, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#additemdata-successcallback-storename)
 
 remove:
 
-* [removeItem(key, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#removeitemkey-successcallback-storename)
-* [removeConditionItem(condition, whether, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#removeconditionitemcondition-whether-successcallback-storename)
-* [clear(successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#clearsuccesscallback-storename)
+* [removeItem(key, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#removeitemkey-successcallback-storename)
+* [removeConditionItem(condition, whether, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#removeconditionitemcondition-whether-successcallback-storename)
+* [clear(storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#clearsuccesscallback-storename)
 
 update:
 
-* [updateItem(newData, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#updateitemnewdata-successcallback-storename)
+* [updateItem(newData, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#updateitemnewdata-successcallback-storename)
 
 ## usage
 
@@ -64,7 +68,7 @@ import DB from 'indexeddb-crud';
 
 ### API
 
-#### open(config, successCallback?, failCallback?)
+#### open(config).then().catch()
 
 * initialData is *Optional*, and it's a array object
 * about initialData, `key = 0` is just for demo, we only use `key >= 1`, so we usually begain at `key = 1`
@@ -147,7 +151,7 @@ function clickHandler() {
   console.log('test');
 }
 
-DB.open(config, addEvents);
+DB.open(config).then(addEvents);
 ```
 
 #### getLength(storeName?)
@@ -174,7 +178,7 @@ DB.getNewKey(storeName);
 
 You will need it in `addItem()`.
 
-#### addItem(data, successCallback?, storeName?)
+#### addItem(data, storeName?).then().catch()
 
 * data's structure should at least contains number type key.
 
@@ -192,10 +196,10 @@ DB.addItem(data);
 
 // or pass storeName explicitly
 var storeName = 'list';
-DB.addItem(data, null, storeName);
+DB.addItem(data, storeName);
 ```
 
-#### getItem(key, successCallback?, storeName?)
+#### getItem(key, storeName?).then().catch()
 
 ```javascript
 function doSomething(data) {
@@ -203,16 +207,16 @@ function doSomething(data) {
 }
 
 // If you have only 1 objectSotre, suggest use the default storeName 
-DB.getItem(1, doSomething);
+DB.getItem(1).then(doSomething);
 
 // or pass storeName explicitly
 var storeName = 'list';
-DB.getItem(1, doSomething, storeName);
+DB.getItem(1, storeName).then(doSomething);
 ```
 
 * the key should be a number, which matched to db's id
 
-#### getConditionItem(condition, whether, successCallback?, storeName?)
+#### getConditionItem(condition, whether, storeName?).then().catch()
 
 * whether is `Boolean` type
 * `condition` should be a **boolean-condition**, for example:
@@ -233,14 +237,14 @@ var DBConfig = {
 };
 
 // If you have only 1 objectSotre, suggest use the default storeName 
-DB.getConditionItem('finished', false, doSomething);
+DB.getConditionItem('finished', false).then(doSomething);
 
 // or pass storeName explicitly
 var storeName = 'list';
-DB.getConditionItem('finished', false, doSomething,storeName);
+DB.getConditionItem('finished', false,storeName).then(doSomething);
 ```
 
-#### getAll(successCallback?, storeName?)
+#### getAll(storeName?)
 
 ```javascript
 function doSomething(dataArr) {
@@ -255,20 +259,20 @@ var storeName = 'list';
 DB.getAll(doSomething, storeName);
 ```
 
-#### removeItem(key, successCallback?, storeName?)
+#### removeItem(key, storeName?).then().catch()
 
 * the **key should be number type**, which matched to db's key.
 
 ```javascript
 // If you have only 1 objectSotre, suggest use the default storeName 
-DB.removeItem(1, doSomething);
+DB.removeItem(1).then(doSomething);
 
 // or pass storeName explicitly
 var storeName = 'list';
-DB.removeItem(1, doSomething, storeName);
+DB.removeItem(1, storeName).then(doSomething);
 ```
 
-#### removeConditionItem(condition, whether, successCallback?, storeName?)
+#### removeConditionItem(condition, whether, storeName?).then().catch()
 
 * whether is Boolean
 * `condition` should be a boolean-condition, for example:
@@ -289,25 +293,25 @@ var DBConfig = {
 };
 
 // If you have only 1 objectSotre, suggest use the default storeName 
-DB.removeConditionItem('true', successCallback);
+DB.removeConditionItem('true').then(successCallback);
 
 // or pass storeName explicitly
 var storeName = 'list';
-DB.removeConditionItem('true', successCallback, storeName);
+DB.removeConditionItem('true', storeName).then(successCallback);
 ```
 
-#### clear(successCallback?, storeName?)
+#### clear(storeName?).then().catch()
 
 ```javascript
 // If you have only 1 objectSotre, suggest use the default storeName
-DB.clear(doSomething);
+DB.clear().then(doSomething);
 
 // or pass storeName explicitly
 var storeName = 'list';
-DB.clear(doSomething, storeName);
+DB.clear(storeName).then(doSomething);
 ```
 
-#### updateItem(newData, successCallback?, storeName?)
+#### updateItem(newData, storeName?).then().catch()
 
 ```javascript
 var DBConfig = {
@@ -325,11 +329,11 @@ var DBConfig = {
 };
 
 // If you have only 1 objectSotre, suggest use the default storeName
-DB.updateItem(newData, doSomething);
+DB.updateItem(newData).then(doSomething);
 
 // or pass storeName explicitly
 var storeName = 'list';
-DB.updateItem(newData, doSomething, storeName);
+DB.updateItem(newData, storeName).then(doSomething);
 ```
 
 ## example

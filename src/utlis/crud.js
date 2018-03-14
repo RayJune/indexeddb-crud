@@ -106,7 +106,7 @@ function update(dbValue, newData, storeName) {
   return promiseGenerator.request(putRequest, successMessage, newData);
 }
 
-const crud = {
+export default {
   get,
   getWhetherCondition,
   getAll,
@@ -116,5 +116,3 @@ const crud = {
   clear,
   update,
 };
-
-export default crud;
