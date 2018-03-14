@@ -8,6 +8,10 @@ var _log = require('./utlis/log');
 
 var _log2 = _interopRequireDefault(_log);
 
+var _requestPromise = require('./utlis/requestPromise');
+
+var _requestPromise2 = _interopRequireDefault(_requestPromise);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var IndexedDBHandler = function () {
@@ -15,21 +19,16 @@ var IndexedDBHandler = function () {
   var _defaultStoreName = void 0;
   var _presentKey = {}; // store multi-objectStore's presentKey
 
-  function open(config, openSuccessCallback, openFailCallback) {
-    // init open indexedDB
-    if (!window.indexedDB) {
-      // firstly inspect browser's support for indexedDB
-      if (openFailCallback) {
-        openFailCallback(); // PUNCHLINE: offer without-DB handler
+  function open(config) {
+    return new Promise(function (resolve, reject) {
+
+      if (window.indexedDB) {
+        _openHandler(config, resolve);
       } else {
-        window.alert('\u2714 Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it');
+        _log2.default.fail('Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it');
+        reject(error);
       }
-
-      return 0;
-    }
-    _openHandler(config, openSuccessCallback);
-
-    return 0;
+    });
   }
 
   function _openHandler(config, successCallback) {
@@ -180,32 +179,25 @@ var IndexedDBHandler = function () {
 
   /* CRUD */
 
-  function addItem(newData, successCallback) {
-    var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
+  function addItem(newData) {
+    var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
 
     var transaction = _db.transaction([storeName], 'readwrite');
     var addRequest = transaction.objectStore(storeName).add(newData);
+    var successMessage = 'add ' + storeName + '\'s ' + addRequest.source.keyPath + '  = ' + newData[addRequest.source.keyPath] + ' data succeed';
 
-    addRequest.onsuccess = function () {
-      _log2.default.success('add ' + storeName + '\'s ' + addRequest.source.keyPath + '  = ' + newData[addRequest.source.keyPath] + ' data succeed');
-      if (successCallback) {
-        successCallback(newData);
-      }
-    };
+    return (0, _requestPromise2.default)(addRequest, successMessage, newData);
   }
 
-  function getItem(key, successCallback) {
-    var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
+  function getItem(key) {
+    var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
 
     var transaction = _db.transaction([storeName]);
     var getRequest = transaction.objectStore(storeName).get(parseInt(key, 10)); // get it by index
+    var successMessage = 'get ' + storeName + '\'s ' + getRequest.source.keyPath + ' = ' + key + ' data success';
+    var data = { property: 'result' };
 
-    getRequest.onsuccess = function () {
-      _log2.default.success('get ' + storeName + '\'s ' + getRequest.source.keyPath + ' = ' + key + ' data success');
-      if (successCallback) {
-        successCallback(getRequest.result);
-      }
-    };
+    return (0, _requestPromise2.default)(getRequest, successMessage, data);
   }
 
   // get conditional data (boolean condition)
@@ -264,13 +256,9 @@ var IndexedDBHandler = function () {
 
     var transaction = _db.transaction([storeName], 'readwrite');
     var deleteRequest = transaction.objectStore(storeName).delete(key);
+    var successMessage = 'remove ' + storeName + '\'s  ' + deleteRequest.source.keyPath + ' = ' + key + ' data success';
 
-    deleteRequest.onsuccess = function () {
-      _log2.default.success('remove ' + storeName + '\'s  ' + deleteRequest.source.keyPath + ' = ' + key + ' data success');
-      if (successCallback) {
-        successCallback(key);
-      }
-    };
+    return (0, _requestPromise2.default)(deleteRequest, successMessage, key);
   }
 
   function removeWhetherConditionItem(condition, whether, successCallback) {
@@ -327,13 +315,9 @@ var IndexedDBHandler = function () {
 
     var transaction = _db.transaction([storeName], 'readwrite');
     var putRequest = transaction.objectStore(storeName).put(newData);
+    var successMessage = 'update ' + storeName + '\'s ' + putRequest.source.keyPath + '  = ' + newData[putRequest.source.keyPath] + ' data success';
 
-    putRequest.onsuccess = function () {
-      _log2.default.success('update ' + storeName + '\'s ' + putRequest.source.keyPath + '  = ' + newData[putRequest.source.keyPath] + ' data success');
-      if (successCallback) {
-        successCallback(newData);
-      }
-    };
+    return (0, _requestPromise2.default)(putRequest, successMessage, newData);
   }
 
   function _getAllRequest(transaction, storeName) {

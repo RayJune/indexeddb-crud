@@ -1,24 +1,21 @@
 import log from './utlis/log';
+import requestPromise from './utlis/requestPromise';
 
 const IndexedDBHandler = (() => {
   let _db;
   let _defaultStoreName;
   const _presentKey = {}; // store multi-objectStore's presentKey
 
-  function open(config, openSuccessCallback, openFailCallback) {
-    // init open indexedDB
-    if (!window.indexedDB) { // firstly inspect browser's support for indexedDB
-      if (openFailCallback) {
-        openFailCallback(); // PUNCHLINE: offer without-DB handler
+  function open(config) {
+    return new Promise((resolve, reject) => {
+    
+      if (window.indexedDB){
+        _openHandler(config, resolve);
       } else {
-        window.alert('\u2714 Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it');
+        log.fail('Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it')
+        reject(error);
       }
-
-      return 0;
-    }
-    _openHandler(config, openSuccessCallback);
-
-    return 0;
+    });
   }
 
   function _openHandler(config, successCallback) {
@@ -157,28 +154,21 @@ const IndexedDBHandler = (() => {
 
   /* CRUD */
 
-  function addItem(newData, successCallback, storeName = _defaultStoreName) {
+  function addItem(newData, storeName = _defaultStoreName) {
     const transaction = _db.transaction([storeName], 'readwrite');
     const addRequest = transaction.objectStore(storeName).add(newData);
+    const successMessage = `add ${storeName}'s ${addRequest.source.keyPath}  = ${newData[addRequest.source.keyPath]} data succeed`;
 
-    addRequest.onsuccess = () => {
-      log.success(`add ${storeName}'s ${addRequest.source.keyPath}  = ${newData[addRequest.source.keyPath]} data succeed`);
-      if (successCallback) {
-        successCallback(newData);
-      }
-    };
+    return requestPromise(addRequest, successMessage, newData);
   }
 
-  function getItem(key, successCallback, storeName = _defaultStoreName) {
+  function getItem(key, storeName = _defaultStoreName) {
     const transaction = _db.transaction([storeName]);
     const getRequest = transaction.objectStore(storeName).get(parseInt(key, 10)); // get it by index
+    const successMessage = `get ${storeName}'s ${getRequest.source.keyPath} = ${key} data success`;
+    const data = { property: 'result'};
 
-    getRequest.onsuccess = () => {
-      log.success(`get ${storeName}'s ${getRequest.source.keyPath} = ${key} data success`);
-      if (successCallback) {
-        successCallback(getRequest.result);
-      }
-    };
+    return requestPromise(getRequest, successMessage, data);
   }
 
   // get conditional data (boolean condition)
@@ -227,13 +217,9 @@ const IndexedDBHandler = (() => {
   function removeItem(key, successCallback, storeName = _defaultStoreName) {
     const transaction = _db.transaction([storeName], 'readwrite');
     const deleteRequest = transaction.objectStore(storeName).delete(key);
+    const successMessage = `remove ${storeName}'s  ${deleteRequest.source.keyPath} = ${key} data success`;
 
-    deleteRequest.onsuccess = () => {
-      log.success(`remove ${storeName}'s  ${deleteRequest.source.keyPath} = ${key} data success`);
-      if (successCallback) {
-        successCallback(key);
-      }
-    };
+    return requestPromise(deleteRequest, successMessage, key);
   }
 
   function removeWhetherConditionItem(condition, whether, successCallback, storeName = _defaultStoreName) {
@@ -280,13 +266,9 @@ const IndexedDBHandler = (() => {
   function updateItem(newData, successCallback, storeName = _defaultStoreName) {
     const transaction = _db.transaction([storeName], 'readwrite');
     const putRequest = transaction.objectStore(storeName).put(newData);
-
-    putRequest.onsuccess = () => {
-      log.success(`update ${storeName}'s ${putRequest.source.keyPath}  = ${newData[putRequest.source.keyPath]} data success`);
-      if (successCallback) {
-        successCallback(newData);
-      }
-    };
+    const successMessage = `update ${storeName}'s ${putRequest.source.keyPath}  = ${newData[putRequest.source.keyPath]} data success`;
+    
+    return requestPromise(putRequest, successMessage, newData);
   }
 
   function _getAllRequest(transaction, storeName) {
