@@ -8,9 +8,13 @@ var _log = require('./utlis/log');
 
 var _log2 = _interopRequireDefault(_log);
 
-var _requestPromise = require('./utlis/requestPromise');
+var _crud = require('./utlis/crud');
 
-var _requestPromise2 = _interopRequireDefault(_requestPromise);
+var _crud2 = _interopRequireDefault(_crud);
+
+var _getAllRequest = require('./utlis/getAllRequest');
+
+var _getAllRequest2 = _interopRequireDefault(_getAllRequest);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -94,7 +98,7 @@ var IndexedDBHandler = function () {
     var transaction = _db.transaction([storeName]);
 
     _presentKey[storeName] = 0;
-    _getAllRequest(transaction, storeName).onsuccess = function (_ref4) {
+    (0, _getAllRequest2.default)(transaction, storeName).onsuccess = function (_ref4) {
       var target = _ref4.target;
 
       var cursor = target.result;
@@ -177,152 +181,47 @@ var IndexedDBHandler = function () {
     return _presentKey[storeName];
   }
 
-  /* CRUD */
+  /* crud methods */
 
-  function addItem(newData) {
+  var getItem = function getItem(key) {
     var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
+    return _crud2.default.get(_db, key, storeName);
+  };
 
-    var transaction = _db.transaction([storeName], 'readwrite');
-    var addRequest = transaction.objectStore(storeName).add(newData);
-    var successMessage = 'add ' + storeName + '\'s ' + addRequest.source.keyPath + '  = ' + newData[addRequest.source.keyPath] + ' data succeed';
-
-    return (0, _requestPromise2.default)(addRequest, successMessage, newData);
-  }
-
-  function getItem(key) {
+  var getWhetherConditionItem = function getWhetherConditionItem(newData) {
     var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
+    return _crud2.default.getWhetherCondition(_db, condition, whether, storeName);
+  };
 
-    var transaction = _db.transaction([storeName]);
-    var getRequest = transaction.objectStore(storeName).get(parseInt(key, 10)); // get it by index
-    var successMessage = 'get ' + storeName + '\'s ' + getRequest.source.keyPath + ' = ' + key + ' data success';
-    var data = { property: 'result' };
+  var getAll = function getAll() {
+    var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
+    return _crud2.default.getAll(_db, successCallback, storeName);
+  };
 
-    return (0, _requestPromise2.default)(getRequest, successMessage, data);
-  }
-
-  // get conditional data (boolean condition)
-  function getWhetherConditionItem(condition, whether, successCallback) {
-    var storeName = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : _defaultStoreName;
-
-    var transaction = _db.transaction([storeName]);
-    var result = []; // use an array to storage eligible data
-
-    _getAllRequest(transaction, storeName).onsuccess = function (_ref5) {
-      var target = _ref5.target;
-
-      var cursor = target.result;
-
-      if (cursor) {
-        if (cursor.value[condition] === whether) {
-          result.push(cursor.value);
-        }
-        cursor.continue();
-      }
-    };
-    transaction.oncomplete = function () {
-      _log2.default.success('get ' + storeName + '\'s ' + condition + ' = ' + whether + ' data success');
-      if (successCallback) {
-        successCallback(result);
-      }
-    };
-  }
-
-  function getAll(successCallback) {
+  var addItem = function addItem(newData) {
     var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
+    return _crud2.default.add(_db, newData, storeName);
+  };
 
-    var transaction = _db.transaction([storeName]);
-    var result = [];
+  var removeItem = function removeItem(key) {
+    var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
+    return _crud2.default.remove(_db, key, storeName);
+  };
 
-    _getAllRequest(transaction, storeName).onsuccess = function (_ref6) {
-      var target = _ref6.target;
-
-      var cursor = target.result;
-
-      if (cursor) {
-        result.push(cursor.value);
-        cursor.continue();
-      }
-    };
-    transaction.oncomplete = function () {
-      _log2.default.success('get ' + storeName + '\'s all data success');
-      if (successCallback) {
-        successCallback(result);
-      }
-    };
-  }
-
-  function removeItem(key, successCallback) {
+  var removeWhetherConditionItem = function removeWhetherConditionItem(condition, whether) {
     var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
+    return _crud2.default.removeWhetherCondition(_db, condition, whether, storeName);
+  };
 
-    var transaction = _db.transaction([storeName], 'readwrite');
-    var deleteRequest = transaction.objectStore(storeName).delete(key);
-    var successMessage = 'remove ' + storeName + '\'s  ' + deleteRequest.source.keyPath + ' = ' + key + ' data success';
+  var clear = function clear() {
+    var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
+    return _crud2.default.clear(_db, storeName);
+  };
 
-    return (0, _requestPromise2.default)(deleteRequest, successMessage, key);
-  }
-
-  function removeWhetherConditionItem(condition, whether, successCallback) {
-    var storeName = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : _defaultStoreName;
-
-    var transaction = _db.transaction([storeName], 'readwrite');
-
-    _getAllRequest(transaction, storeName).onsuccess = function (_ref7) {
-      var target = _ref7.target;
-
-      var cursor = target.result;
-
-      if (cursor) {
-        if (cursor.value[condition] === whether) {
-          cursor.delete();
-        }
-        cursor.continue();
-      }
-    };
-    transaction.oncomplete = function () {
-      _log2.default.success('remove ' + storeName + '\'s ' + condition + ' = ' + whether + ' data success');
-      if (successCallback) {
-        successCallback();
-      }
-    };
-  }
-
-  function clear(successCallback) {
+  var updateItem = function updateItem(newData) {
     var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
-
-    var transaction = _db.transaction([storeName], 'readwrite');
-
-    _getAllRequest(transaction, storeName).onsuccess = function (_ref8) {
-      var target = _ref8.target;
-
-      var cursor = target.result;
-
-      if (cursor) {
-        cursor.delete();
-        cursor.continue();
-      }
-    };
-    transaction.oncomplete = function () {
-      _log2.default.success('clear ' + storeName + '\'s all data success');
-      if (successCallback) {
-        successCallback('clear all data success');
-      }
-    };
-  }
-
-  // update one
-  function updateItem(newData, successCallback) {
-    var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
-
-    var transaction = _db.transaction([storeName], 'readwrite');
-    var putRequest = transaction.objectStore(storeName).put(newData);
-    var successMessage = 'update ' + storeName + '\'s ' + putRequest.source.keyPath + '  = ' + newData[putRequest.source.keyPath] + ' data success';
-
-    return (0, _requestPromise2.default)(putRequest, successMessage, newData);
-  }
-
-  function _getAllRequest(transaction, storeName) {
-    return transaction.objectStore(storeName).openCursor(IDBKeyRange.lowerBound(1), 'next');
-  }
+    return _crud2.default.update(_db, newData, storeName);
+  };
 
   return {
     open: open,

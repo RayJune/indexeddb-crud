@@ -1,5 +1,6 @@
 import log from './utlis/log';
-import requestPromise from './utlis/requestPromise';
+import crud from './utlis/crud';
+import getAllRequest from './utlis/getAllRequest';
 
 const IndexedDBHandler = (() => {
   let _db;
@@ -8,7 +9,7 @@ const IndexedDBHandler = (() => {
 
   function open(config) {
     return new Promise((resolve, reject) => {
-    
+
       if (window.indexedDB){
         _openHandler(config, resolve);
       } else {
@@ -75,7 +76,7 @@ const IndexedDBHandler = (() => {
     const transaction = _db.transaction([storeName]);
 
     _presentKey[storeName] = 0;
-    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
+    getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
       const cursor = target.result;
 
       if (cursor) {
@@ -152,128 +153,31 @@ const IndexedDBHandler = (() => {
     return _presentKey[storeName];
   }
 
-  /* CRUD */
+  /* crud methods */
 
-  function addItem(newData, storeName = _defaultStoreName) {
-    const transaction = _db.transaction([storeName], 'readwrite');
-    const addRequest = transaction.objectStore(storeName).add(newData);
-    const successMessage = `add ${storeName}'s ${addRequest.source.keyPath}  = ${newData[addRequest.source.keyPath]} data succeed`;
+  const getItem = (key, storeName = _defaultStoreName) =>
+    crud.get(_db, key, storeName);
 
-    return requestPromise(addRequest, successMessage, newData);
-  }
+  const getWhetherConditionItem = (newData, storeName = _defaultStoreName) =>
+    crud.getWhetherCondition(_db, condition, whether, storeName);
 
-  function getItem(key, storeName = _defaultStoreName) {
-    const transaction = _db.transaction([storeName]);
-    const getRequest = transaction.objectStore(storeName).get(parseInt(key, 10)); // get it by index
-    const successMessage = `get ${storeName}'s ${getRequest.source.keyPath} = ${key} data success`;
-    const data = { property: 'result'};
+  const getAll = (storeName = _defaultStoreName) =>
+    crud.getAll(_db, successCallback, storeName);
 
-    return requestPromise(getRequest, successMessage, data);
-  }
+  const addItem = (newData, storeName = _defaultStoreName) =>
+    crud.add(_db, newData, storeName);
 
-  // get conditional data (boolean condition)
-  function getWhetherConditionItem(condition, whether, successCallback, storeName = _defaultStoreName) {
-    const transaction = _db.transaction([storeName]);
-    const result = []; // use an array to storage eligible data
+  const removeItem = (key, storeName = _defaultStoreName) =>
+    crud.remove(_db, key, storeName);
 
-    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
-      const cursor = target.result;
+  const removeWhetherConditionItem = (condition, whether, storeName = _defaultStoreName) =>
+    crud.removeWhetherCondition(_db, condition, whether, storeName);
 
-      if (cursor) {
-        if (cursor.value[condition] === whether) {
-          result.push(cursor.value);
-        }
-        cursor.continue();
-      }
-    };
-    transaction.oncomplete = () => {
-      log.success(`get ${storeName}'s ${condition} = ${whether} data success`);
-      if (successCallback) {
-        successCallback(result);
-      }
-    };
-  }
+  const clear = (storeName = _defaultStoreName) =>
+    crud.clear(_db, storeName);
 
-  function getAll(successCallback, storeName = _defaultStoreName) {
-    const transaction = _db.transaction([storeName]);
-    const result = [];
-
-    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
-      const cursor = target.result;
-
-      if (cursor) {
-        result.push(cursor.value);
-        cursor.continue();
-      }
-    };
-    transaction.oncomplete = () => {
-      log.success(`get ${storeName}'s all data success`);
-      if (successCallback) {
-        successCallback(result);
-      }
-    };
-  }
-
-  function removeItem(key, successCallback, storeName = _defaultStoreName) {
-    const transaction = _db.transaction([storeName], 'readwrite');
-    const deleteRequest = transaction.objectStore(storeName).delete(key);
-    const successMessage = `remove ${storeName}'s  ${deleteRequest.source.keyPath} = ${key} data success`;
-
-    return requestPromise(deleteRequest, successMessage, key);
-  }
-
-  function removeWhetherConditionItem(condition, whether, successCallback, storeName = _defaultStoreName) {
-    const transaction = _db.transaction([storeName], 'readwrite');
-
-    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
-      const cursor = target.result;
-
-      if (cursor) {
-        if (cursor.value[condition] === whether) {
-          cursor.delete();
-        }
-        cursor.continue();
-      }
-    };
-    transaction.oncomplete = () => {
-      log.success(`remove ${storeName}'s ${condition} = ${whether} data success`);
-      if (successCallback) {
-        successCallback();
-      }
-    };
-  }
-
-  function clear(successCallback, storeName = _defaultStoreName) {
-    const transaction = _db.transaction([storeName], 'readwrite');
-
-    _getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
-      const cursor = target.result;
-
-      if (cursor) {
-        cursor.delete();
-        cursor.continue();
-      }
-    };
-    transaction.oncomplete = () => {
-      log.success(`clear ${storeName}'s all data success`);
-      if (successCallback) {
-        successCallback('clear all data success');
-      }
-    };
-  }
-
-  // update one
-  function updateItem(newData, successCallback, storeName = _defaultStoreName) {
-    const transaction = _db.transaction([storeName], 'readwrite');
-    const putRequest = transaction.objectStore(storeName).put(newData);
-    const successMessage = `update ${storeName}'s ${putRequest.source.keyPath}  = ${newData[putRequest.source.keyPath]} data success`;
-    
-    return requestPromise(putRequest, successMessage, newData);
-  }
-
-  function _getAllRequest(transaction, storeName) {
-    return transaction.objectStore(storeName).openCursor(IDBKeyRange.lowerBound(1), 'next');
-  }
+  const updateItem = (newData, storeName = _defaultStoreName) =>
+    crud.update(_db, newData, storeName);
 
   return {
     open,
