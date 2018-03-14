@@ -1,5 +1,4 @@
-import log from './log';
-import requestPromise from './requestPromise';
+import promiseGenerator from './promiseGenerator';
 import getAllRequest from './getAllRequest';
 
 function get(dbValue, key, storeName) {
@@ -8,13 +7,14 @@ function get(dbValue, key, storeName) {
   const successMessage = `get ${storeName}'s ${getRequest.source.keyPath} = ${key} data success`;
   const data = { property: 'result' };
 
-  return requestPromise(getRequest, successMessage, data);
+  return promiseGenerator.request(getRequest, successMessage, data);
 }
 
 // get conditional data (boolean condition)
-function getWhetherCondition(dbValue, condition, whether, successCallback, storeName) {
+function getWhetherCondition(dbValue, condition, whether, storeName) {
   const transaction = dbValue.transaction([storeName]);
   const result = []; // use an array to storage eligible data
+  const successMessage = `get ${storeName}'s ${condition} = ${whether} data success`;
 
   getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
     const cursor = target.result;
@@ -26,17 +26,14 @@ function getWhetherCondition(dbValue, condition, whether, successCallback, store
       cursor.continue();
     }
   };
-  transaction.oncomplete = () => {
-    log.success(`get ${storeName}'s ${condition} = ${whether} data success`);
-    if (successCallback) {
-      successCallback(result);
-    }
-  };
+
+  return promiseGenerator.transaction(transaction, successMessage, result);
 }
 
-function getAll(dbValue, successCallback, storeName) {
+function getAll(dbValue, storeName) {
   const transaction = dbValue.transaction([storeName]);
   const result = [];
+  const successMessage = `get ${storeName}'s all data success`;
 
   getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
     const cursor = target.result;
@@ -46,12 +43,8 @@ function getAll(dbValue, successCallback, storeName) {
       cursor.continue();
     }
   };
-  transaction.oncomplete = () => {
-    log.success(`get ${storeName}'s all data success`);
-    if (successCallback) {
-      successCallback(result);
-    }
-  };
+
+  return promiseGenerator.transaction(transaction, successMessage, result);
 }
 
 function add(dbValue, newData, storeName) {
@@ -59,7 +52,7 @@ function add(dbValue, newData, storeName) {
   const addRequest = transaction.objectStore(storeName).add(newData);
   const successMessage = `add ${storeName}'s ${addRequest.source.keyPath}  = ${newData[addRequest.source.keyPath]} data succeed`;
 
-  return requestPromise(addRequest, successMessage, newData);
+  return promiseGenerator.request(addRequest, successMessage, newData);
 }
 
 function remove(dbValue, key, storeName) {
@@ -67,11 +60,12 @@ function remove(dbValue, key, storeName) {
   const deleteRequest = transaction.objectStore(storeName).delete(key);
   const successMessage = `remove ${storeName}'s  ${deleteRequest.source.keyPath} = ${key} data success`;
 
-  return requestPromise(deleteRequest, successMessage, key);
+  return promiseGenerator.request(deleteRequest, successMessage, key);
 }
 
-function removeWhetherCondition(dbValue, condition, whether, successCallback, storeName) {
+function removeWhetherCondition(dbValue, condition, whether, storeName) {
   const transaction = dbValue.transaction([storeName], 'readwrite');
+  const successMessage = `remove ${storeName}'s ${condition} = ${whether} data success`;
 
   getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
     const cursor = target.result;
@@ -83,16 +77,13 @@ function removeWhetherCondition(dbValue, condition, whether, successCallback, st
       cursor.continue();
     }
   };
-  transaction.oncomplete = () => {
-    log.success(`remove ${storeName}'s ${condition} = ${whether} data success`);
-    if (successCallback) {
-      successCallback();
-    }
-  };
+
+  return promiseGenerator.transaction(transaction, successMessage);
 }
 
-function clear(dbValue, successCallback, storeName) {
+function clear(dbValue, storeName) {
   const transaction = dbValue.transaction([storeName], 'readwrite');
+  const successMessage = `clear ${storeName}'s all data success`;
 
   getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
     const cursor = target.result;
@@ -102,12 +93,8 @@ function clear(dbValue, successCallback, storeName) {
       cursor.continue();
     }
   };
-  transaction.oncomplete = () => {
-    log.success(`clear ${storeName}'s all data success`);
-    if (successCallback) {
-      successCallback('clear all data success');
-    }
-  };
+
+  return promiseGenerator.transaction(transaction, successMessage);
 }
 
 // update one
@@ -116,7 +103,7 @@ function update(dbValue, newData, storeName) {
   const putRequest = transaction.objectStore(storeName).put(newData);
   const successMessage = `update ${storeName}'s ${putRequest.source.keyPath}  = ${newData[putRequest.source.keyPath]} data success`;
 
-  return requestPromise(putRequest, successMessage, newData);
+  return promiseGenerator.request(putRequest, successMessage, newData);
 }
 
 const crud = {

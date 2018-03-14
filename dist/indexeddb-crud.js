@@ -16,6 +16,10 @@ var _getAllRequest = require('./utlis/getAllRequest');
 
 var _getAllRequest2 = _interopRequireDefault(_getAllRequest);
 
+var _parseJSONData = require('./utlis/parseJSONData');
+
+var _parseJSONData2 = _interopRequireDefault(_parseJSONData);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var IndexedDBHandler = function () {
@@ -76,7 +80,7 @@ var IndexedDBHandler = function () {
   }
 
   function _openSuccessCallbackHandler(configStoreConfig, successCallback) {
-    var objectStoreList = _parseJSONData(configStoreConfig, 'storeName');
+    var objectStoreList = (0, _parseJSONData2.default)(configStoreConfig, 'storeName');
 
     objectStoreList.forEach(function (storeConfig, index) {
       if (index === 0) {
@@ -118,7 +122,7 @@ var IndexedDBHandler = function () {
   }
 
   function _createObjectStoreHandler(configStoreConfig) {
-    _parseJSONData(configStoreConfig, 'storeName').forEach(function (storeConfig) {
+    (0, _parseJSONData2.default)(configStoreConfig, 'storeName').forEach(function (storeConfig) {
       if (!_db.objectStoreNames.contains(storeConfig.storeName)) {
         _createObjectStore(storeConfig);
       }
@@ -142,7 +146,7 @@ var IndexedDBHandler = function () {
     var transaction = _db.transaction([storeName], 'readwrite');
     var objectStore = transaction.objectStore(storeName);
 
-    _parseJSONData(initialData, 'initial').forEach(function (data, index) {
+    (0, _parseJSONData2.default)(initialData, 'initial').forEach(function (data, index) {
       var addRequest = objectStore.add(data);
 
       addRequest.onsuccess = function () {
@@ -153,18 +157,6 @@ var IndexedDBHandler = function () {
       _log2.default.success('add all ' + storeName + ' \'s initial data done');
       _getPresentKey(storeName);
     };
-  }
-
-  function _parseJSONData(rawdata, name) {
-    try {
-      var parsedData = JSON.parse(JSON.stringify(rawdata));
-
-      return parsedData;
-    } catch (error) {
-      window.alert('please set correct ' + name + ' array object');
-      console.log(error);
-      throw error;
-    }
   }
 
   function getLength() {
@@ -188,14 +180,14 @@ var IndexedDBHandler = function () {
     return _crud2.default.get(_db, key, storeName);
   };
 
-  var getWhetherConditionItem = function getWhetherConditionItem(newData) {
-    var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
+  var getWhetherConditionItem = function getWhetherConditionItem(condition, whether) {
+    var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
     return _crud2.default.getWhetherCondition(_db, condition, whether, storeName);
   };
 
   var getAll = function getAll() {
     var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
-    return _crud2.default.getAll(_db, successCallback, storeName);
+    return _crud2.default.getAll(_db, storeName);
   };
 
   var addItem = function addItem(newData) {

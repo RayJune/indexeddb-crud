@@ -17,4 +17,19 @@ const requestPromise = (request, successMessage, data) =>
     };
   });
 
-export default requestPromise;
+const transactionPromise = (transaction, successMessage, data) =>
+  new Promise((resolve, reject) => {
+    transaction.oncomplete = () => {
+      log.success(successMessage);
+      resolve(data);
+    };
+    transaction.onerror = () => {
+      log.fail(transaction.error);
+      reject();
+    };
+  });
+
+export default {
+  request: requestPromise,
+  transaction: transactionPromise,
+};

@@ -4,13 +4,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _log = require('./log');
+var _promiseGenerator = require('./promiseGenerator');
 
-var _log2 = _interopRequireDefault(_log);
-
-var _requestPromise = require('./requestPromise');
-
-var _requestPromise2 = _interopRequireDefault(_requestPromise);
+var _promiseGenerator2 = _interopRequireDefault(_promiseGenerator);
 
 var _getAllRequest = require('./getAllRequest');
 
@@ -24,13 +20,14 @@ function get(dbValue, key, storeName) {
   var successMessage = 'get ' + storeName + '\'s ' + getRequest.source.keyPath + ' = ' + key + ' data success';
   var data = { property: 'result' };
 
-  return (0, _requestPromise2.default)(getRequest, successMessage, data);
+  return _promiseGenerator2.default.request(getRequest, successMessage, data);
 }
 
 // get conditional data (boolean condition)
-function getWhetherCondition(dbValue, condition, whether, successCallback, storeName) {
+function getWhetherCondition(dbValue, condition, whether, storeName) {
   var transaction = dbValue.transaction([storeName]);
   var result = []; // use an array to storage eligible data
+  var successMessage = 'get ' + storeName + '\'s ' + condition + ' = ' + whether + ' data success';
 
   (0, _getAllRequest2.default)(transaction, storeName).onsuccess = function (_ref) {
     var target = _ref.target;
@@ -44,17 +41,14 @@ function getWhetherCondition(dbValue, condition, whether, successCallback, store
       cursor.continue();
     }
   };
-  transaction.oncomplete = function () {
-    _log2.default.success('get ' + storeName + '\'s ' + condition + ' = ' + whether + ' data success');
-    if (successCallback) {
-      successCallback(result);
-    }
-  };
+
+  return _promiseGenerator2.default.transaction(transaction, successMessage, result);
 }
 
-function getAll(dbValue, successCallback, storeName) {
+function getAll(dbValue, storeName) {
   var transaction = dbValue.transaction([storeName]);
   var result = [];
+  var successMessage = 'get ' + storeName + '\'s all data success';
 
   (0, _getAllRequest2.default)(transaction, storeName).onsuccess = function (_ref2) {
     var target = _ref2.target;
@@ -66,12 +60,8 @@ function getAll(dbValue, successCallback, storeName) {
       cursor.continue();
     }
   };
-  transaction.oncomplete = function () {
-    _log2.default.success('get ' + storeName + '\'s all data success');
-    if (successCallback) {
-      successCallback(result);
-    }
-  };
+
+  return _promiseGenerator2.default.transaction(transaction, successMessage, result);
 }
 
 function add(dbValue, newData, storeName) {
@@ -79,7 +69,7 @@ function add(dbValue, newData, storeName) {
   var addRequest = transaction.objectStore(storeName).add(newData);
   var successMessage = 'add ' + storeName + '\'s ' + addRequest.source.keyPath + '  = ' + newData[addRequest.source.keyPath] + ' data succeed';
 
-  return (0, _requestPromise2.default)(addRequest, successMessage, newData);
+  return _promiseGenerator2.default.request(addRequest, successMessage, newData);
 }
 
 function remove(dbValue, key, storeName) {
@@ -87,11 +77,12 @@ function remove(dbValue, key, storeName) {
   var deleteRequest = transaction.objectStore(storeName).delete(key);
   var successMessage = 'remove ' + storeName + '\'s  ' + deleteRequest.source.keyPath + ' = ' + key + ' data success';
 
-  return (0, _requestPromise2.default)(deleteRequest, successMessage, key);
+  return _promiseGenerator2.default.request(deleteRequest, successMessage, key);
 }
 
-function removeWhetherCondition(dbValue, condition, whether, successCallback, storeName) {
+function removeWhetherCondition(dbValue, condition, whether, storeName) {
   var transaction = dbValue.transaction([storeName], 'readwrite');
+  var successMessage = 'remove ' + storeName + '\'s ' + condition + ' = ' + whether + ' data success';
 
   (0, _getAllRequest2.default)(transaction, storeName).onsuccess = function (_ref3) {
     var target = _ref3.target;
@@ -105,16 +96,13 @@ function removeWhetherCondition(dbValue, condition, whether, successCallback, st
       cursor.continue();
     }
   };
-  transaction.oncomplete = function () {
-    _log2.default.success('remove ' + storeName + '\'s ' + condition + ' = ' + whether + ' data success');
-    if (successCallback) {
-      successCallback();
-    }
-  };
+
+  return _promiseGenerator2.default.transaction(transaction, successMessage);
 }
 
-function clear(dbValue, successCallback, storeName) {
+function clear(dbValue, storeName) {
   var transaction = dbValue.transaction([storeName], 'readwrite');
+  var successMessage = 'clear ' + storeName + '\'s all data success';
 
   (0, _getAllRequest2.default)(transaction, storeName).onsuccess = function (_ref4) {
     var target = _ref4.target;
@@ -126,12 +114,8 @@ function clear(dbValue, successCallback, storeName) {
       cursor.continue();
     }
   };
-  transaction.oncomplete = function () {
-    _log2.default.success('clear ' + storeName + '\'s all data success');
-    if (successCallback) {
-      successCallback('clear all data success');
-    }
-  };
+
+  return _promiseGenerator2.default.transaction(transaction, successMessage);
 }
 
 // update one
@@ -140,7 +124,7 @@ function update(dbValue, newData, storeName) {
   var putRequest = transaction.objectStore(storeName).put(newData);
   var successMessage = 'update ' + storeName + '\'s ' + putRequest.source.keyPath + '  = ' + newData[putRequest.source.keyPath] + ' data success';
 
-  return (0, _requestPromise2.default)(putRequest, successMessage, newData);
+  return _promiseGenerator2.default.request(putRequest, successMessage, newData);
 }
 
 var crud = {

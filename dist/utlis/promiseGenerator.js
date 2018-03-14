@@ -45,4 +45,4 @@ exports.default = {
   request: requestPromise,
   transaction: transactionPromise
 };
-//# sourceMappingURL=requestPromise.js.map
+//# sourceMappingURL=promiseGenerator.js.map

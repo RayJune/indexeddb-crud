@@ -1,6 +1,7 @@
 import log from './utlis/log';
 import crud from './utlis/crud';
 import getAllRequest from './utlis/getAllRequest';
+import parseJSONData from './utlis/parseJSONData';
 
 const IndexedDBHandler = (() => {
   let _db;
@@ -54,7 +55,7 @@ const IndexedDBHandler = (() => {
   }
 
   function _openSuccessCallbackHandler(configStoreConfig, successCallback) {
-    const objectStoreList = _parseJSONData(configStoreConfig, 'storeName');
+    const objectStoreList = parseJSONData(configStoreConfig, 'storeName');
 
     objectStoreList.forEach((storeConfig, index) => {
       if (index === 0) {
@@ -94,7 +95,7 @@ const IndexedDBHandler = (() => {
   }
 
   function _createObjectStoreHandler(configStoreConfig) {
-    _parseJSONData(configStoreConfig, 'storeName').forEach((storeConfig) => {
+    parseJSONData(configStoreConfig, 'storeName').forEach((storeConfig) => {
       if (!(_db.objectStoreNames.contains(storeConfig.storeName))) {
         _createObjectStore(storeConfig);
       }
@@ -118,7 +119,7 @@ const IndexedDBHandler = (() => {
     const transaction = _db.transaction([storeName], 'readwrite');
     const objectStore = transaction.objectStore(storeName);
 
-    _parseJSONData(initialData, 'initial').forEach((data, index) => {
+    parseJSONData(initialData, 'initial').forEach((data, index) => {
       const addRequest = objectStore.add(data);
 
       addRequest.onsuccess = () => {
@@ -129,18 +130,6 @@ const IndexedDBHandler = (() => {
       log.success(`add all ${storeName} 's initial data done`);
       _getPresentKey(storeName);
     };
-  }
-
-  function _parseJSONData(rawdata, name) {
-    try {
-      const parsedData = JSON.parse(JSON.stringify(rawdata));
-
-      return parsedData;
-    } catch (error) {
-      window.alert(`please set correct ${name} array object`);
-      console.log(error);
-      throw error;
-    }
   }
 
   function getLength(storeName = _defaultStoreName) {
@@ -158,11 +147,11 @@ const IndexedDBHandler = (() => {
   const getItem = (key, storeName = _defaultStoreName) =>
     crud.get(_db, key, storeName);
 
-  const getWhetherConditionItem = (newData, storeName = _defaultStoreName) =>
+  const getWhetherConditionItem = (condition, whether, storeName = _defaultStoreName) =>
     crud.getWhetherCondition(_db, condition, whether, storeName);
 
   const getAll = (storeName = _defaultStoreName) =>
-    crud.getAll(_db, successCallback, storeName);
+    crud.getAll(_db, storeName);
 
   const addItem = (newData, storeName = _defaultStoreName) =>
     crud.add(_db, newData, storeName);
