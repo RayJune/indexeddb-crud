@@ -5,16 +5,20 @@ const IndexedDBHandler = (() => {
   let _defaultStoreName;
   const _presentKey = {}; // store multi-objectStore's presentKey
 
-  function open(config) {
-    return new Promise((resolve, reject) => {
-    
-      if (window.indexedDB){
-        _openHandler(config, resolve);
+  function open(config, openSuccessCallback, openFailCallback) {
+    // init open indexedDB
+    if (!window.indexedDB) { // firstly inspect browser's support for indexedDB
+      if (openFailCallback) {
+        openFailCallback(); // PUNCHLINE: offer without-DB handler
       } else {
-        log.fail('Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it')
-        reject(error);
+        window.alert('\u2714 Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it');
       }
-    });
+
+      return 0;
+    }
+    _openHandler(config, openSuccessCallback);
+
+    return 0;
   }
 
   function _openHandler(config, successCallback) {
