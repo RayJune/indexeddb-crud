@@ -30,7 +30,9 @@ var _db = void 0;
 var _defaultStoreName = void 0;
 var _presentKey = {}; // store multi-objectStore's presentKey
 
-function open(config) {
+/* first step, open it and use others API */
+
+var open = function open(config) {
   return new Promise(function (resolve, reject) {
     if (window.indexedDB) {
       _openHandler(config, resolve);
@@ -39,7 +41,64 @@ function open(config) {
       reject();
     }
   });
-}
+};
+
+/* synchronous API */
+
+var getLength = function getLength() {
+  var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
+  return _presentKey[storeName];
+};
+
+var getNewKey = function getNewKey() {
+  var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
+
+  _presentKey[storeName] += 1;
+
+  return _presentKey[storeName];
+};
+
+/* asynchronous API: crud methods */
+
+var getItem = function getItem(key) {
+  var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
+  return _crud2.default.get(_db, key, storeName);
+};
+
+var getWhetherConditionItem = function getWhetherConditionItem(condition, whether) {
+  var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
+  return _crud2.default.getWhetherCondition(_db, condition, whether, storeName);
+};
+
+var getAll = function getAll() {
+  var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
+  return _crud2.default.getAll(_db, storeName);
+};
+
+var addItem = function addItem(newData) {
+  var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
+  return _crud2.default.add(_db, newData, storeName);
+};
+
+var removeItem = function removeItem(key) {
+  var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
+  return _crud2.default.remove(_db, key, storeName);
+};
+
+var removeWhetherConditionItem = function removeWhetherConditionItem(condition, whether) {
+  var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
+  return _crud2.default.removeWhetherCondition(_db, condition, whether, storeName);
+};
+
+var clear = function clear() {
+  var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
+  return _crud2.default.clear(_db, storeName);
+};
+
+var updateItem = function updateItem(newData) {
+  var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
+  return _crud2.default.update(_db, newData, storeName);
+};
 
 function _openHandler(config, successCallback) {
   var openRequest = window.indexedDB.open(config.name, config.version); // open indexedDB
@@ -160,64 +219,6 @@ function _initialDataHandler(storeName, initialData) {
     _getPresentKey(storeName);
   });
 }
-
-/* synchronous API */
-
-function getLength() {
-  var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
-
-  return _presentKey[storeName];
-}
-
-function getNewKey() {
-  var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
-
-  _presentKey[storeName] += 1;
-
-  return _presentKey[storeName];
-}
-
-/* asynchronous API: crud methods */
-
-var getItem = function getItem(key) {
-  var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
-  return _crud2.default.get(_db, key, storeName);
-};
-
-var getWhetherConditionItem = function getWhetherConditionItem(condition, whether) {
-  var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
-  return _crud2.default.getWhetherCondition(_db, condition, whether, storeName);
-};
-
-var getAll = function getAll() {
-  var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
-  return _crud2.default.getAll(_db, storeName);
-};
-
-var addItem = function addItem(newData) {
-  var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
-  return _crud2.default.add(_db, newData, storeName);
-};
-
-var removeItem = function removeItem(key) {
-  var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
-  return _crud2.default.remove(_db, key, storeName);
-};
-
-var removeWhetherConditionItem = function removeWhetherConditionItem(condition, whether) {
-  var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
-  return _crud2.default.removeWhetherCondition(_db, condition, whether, storeName);
-};
-
-var clear = function clear() {
-  var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
-  return _crud2.default.clear(_db, storeName);
-};
-
-var updateItem = function updateItem(newData) {
-  var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
-  return _crud2.default.update(_db, newData, storeName);
-};
 
 exports.default = {
   open: open,

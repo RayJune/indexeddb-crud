@@ -8,8 +8,10 @@ let _db;
 let _defaultStoreName;
 const _presentKey = {}; // store multi-objectStore's presentKey
 
-function open(config) {
-  return new Promise((resolve, reject) => {
+/* first step, open it and use others API */
+
+const open = config =>
+  new Promise((resolve, reject) => {
     if (window.indexedDB) {
       _openHandler(config, resolve);
     } else {
@@ -17,7 +19,42 @@ function open(config) {
       reject();
     }
   });
-}
+
+/* synchronous API */
+
+const getLength = (storeName = _defaultStoreName) => _presentKey[storeName];
+
+const getNewKey = (storeName = _defaultStoreName) => {
+  _presentKey[storeName] += 1;
+
+  return _presentKey[storeName];
+};
+
+/* asynchronous API: crud methods */
+
+const getItem = (key, storeName = _defaultStoreName) =>
+  crud.get(_db, key, storeName);
+
+const getWhetherConditionItem = (condition, whether, storeName = _defaultStoreName) =>
+  crud.getWhetherCondition(_db, condition, whether, storeName);
+
+const getAll = (storeName = _defaultStoreName) =>
+  crud.getAll(_db, storeName);
+
+const addItem = (newData, storeName = _defaultStoreName) =>
+  crud.add(_db, newData, storeName);
+
+const removeItem = (key, storeName = _defaultStoreName) =>
+  crud.remove(_db, key, storeName);
+
+const removeWhetherConditionItem = (condition, whether, storeName = _defaultStoreName) =>
+  crud.removeWhetherCondition(_db, condition, whether, storeName);
+
+const clear = (storeName = _defaultStoreName) =>
+  crud.clear(_db, storeName);
+
+const updateItem = (newData, storeName = _defaultStoreName) =>
+  crud.update(_db, newData, storeName);
 
 function _openHandler(config, successCallback) {
   const openRequest = window.indexedDB.open(config.name, config.version); // open indexedDB
@@ -105,7 +142,7 @@ function _createObjectStore({ storeName, key, initialData }) {
   promiseGenerator.transaction(transaction, successMessage)
     .then(() => {
       if (initialData) {
-      // Store initial values in the newly created object store.
+        // Store initial values in the newly created object store.
         _initialDataHandler(storeName, initialData);
       }
     });
@@ -126,44 +163,6 @@ function _initialDataHandler(storeName, initialData) {
   promiseGenerator.transaction(transaction, successMessage)
     .then(() => { _getPresentKey(storeName); });
 }
-
-/* synchronous API */
-
-function getLength(storeName = _defaultStoreName) {
-  return _presentKey[storeName];
-}
-
-function getNewKey(storeName = _defaultStoreName) {
-  _presentKey[storeName] += 1;
-
-  return _presentKey[storeName];
-}
-
-/* asynchronous API: crud methods */
-
-const getItem = (key, storeName = _defaultStoreName) =>
-  crud.get(_db, key, storeName);
-
-const getWhetherConditionItem = (condition, whether, storeName = _defaultStoreName) =>
-  crud.getWhetherCondition(_db, condition, whether, storeName);
-
-const getAll = (storeName = _defaultStoreName) =>
-  crud.getAll(_db, storeName);
-
-const addItem = (newData, storeName = _defaultStoreName) =>
-  crud.add(_db, newData, storeName);
-
-const removeItem = (key, storeName = _defaultStoreName) =>
-  crud.remove(_db, key, storeName);
-
-const removeWhetherConditionItem = (condition, whether, storeName = _defaultStoreName) =>
-  crud.removeWhetherCondition(_db, condition, whether, storeName);
-
-const clear = (storeName = _defaultStoreName) =>
-  crud.clear(_db, storeName);
-
-const updateItem = (newData, storeName = _defaultStoreName) =>
-  crud.update(_db, newData, storeName);
 
 export default {
   open,

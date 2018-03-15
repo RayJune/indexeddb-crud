@@ -2,12 +2,12 @@
 
 indexedDB-CRUD packs obscure indexedDB CRUD methods to a really friendly succinct interface. And offer **multi-objectStore CRUD handler**.
 
-If you want to operate **one or more indexedDB objectStore**, just `DB.open(config).then(successCallback).catch()`, and *you'll get a indexedDB-crud handler* when its `successCallback` finished.
+If you want to operate **one or more indexedDB objectStore**, just `DB.open(config).then(successCallback).catch()`, and *you'll get a indexedDB-crud handler* when its `DB.open` successed.
 
 Hope you keep in mind that:
 
 * `config`'s **format should be correct**
-* if you not input `storeName` explicitly in API, your config's first `sotreName` will be the **default storeName**
+* if you not input `storeName` explicitly in API, **your config's first `sotreName` will be the default storeName**
 * indexedDB object store can *only hold JavaScript objects*. The objects *must have a property with the same name as the key path*
 
 ## Installation
