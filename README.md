@@ -2,7 +2,7 @@
 
 indexedDB-CRUD packs obscure indexedDB CRUD methods to a really friendly succinct interface. And offer **multi-objectStore CRUD handler**.
 
-If you want to operate **one or more indexedDB objectStore**, just `DB.open(config, openSuccessCallback)`, and *you'll get a indexedDB-crud handler* when its `openSuccessCallback` finished.
+If you want to operate **one or more indexedDB objectStore**, just `DB.open(config).then(successCallback).catch()`, and *you'll get a indexedDB-crud handler* when its `successCallback` finished.
 
 Hope you keep in mind that:
 
@@ -342,7 +342,7 @@ a simple todolist web-app, storage data in indexedDB (use indexeddb-crud to hand
 
 ## author
 
-[RayJune](http://rayjune.xyz/about): a CS university student from Fuzhou, Fujian, China
+[RayJune](https://www.rayjune.me/about): a CS university student from Fuzhou, Fujian, China
 
 ## License
 

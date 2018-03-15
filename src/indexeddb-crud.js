@@ -2,6 +2,7 @@ import log from './utlis/log';
 import crud from './utlis/crud';
 import getAllRequest from './utlis/getAllRequest';
 import parseJSONData from './utlis/parseJSONData';
+import promiseGenerator from './utlis/promiseGenerator';
 
 let _db;
 let _defaultStoreName;
@@ -9,12 +10,11 @@ const _presentKey = {}; // store multi-objectStore's presentKey
 
 function open(config) {
   return new Promise((resolve, reject) => {
-
-    if (window.indexedDB){
+    if (window.indexedDB) {
       _openHandler(config, resolve);
     } else {
-      log.fail('Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it')
-      reject(error);
+      log.fail('Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it');
+      reject();
     }
   });
 }
@@ -25,7 +25,7 @@ function _openHandler(config, successCallback) {
   // an onblocked event is fired until they are closed or reloaded
   openRequest.onblocked = () => {
     // If some other tab is loaded with the database, then it needs to be closed before we can proceed.
-    window.alert('Please close all other tabs with this site open');
+    log.fail('Please close all other tabs with this site open');
   };
 
   // Creating or updating the version of the database
@@ -40,15 +40,15 @@ function _openHandler(config, successCallback) {
     _db = target.result;
     _db.onversionchange = () => {
       _db.close();
-      window.alert('A new version of this page is ready. Please reload');
+      log.fail('A new version of this page is ready. Please reload');
     };
     _openSuccessCallbackHandler(config.storeConfig, successCallback);
   };
 
   // use error events bubble to handle all error events
   openRequest.onerror = ({ target }) => {
-    window.alert('Something is wrong with indexedDB, for more information, checkout console');
-    console.log(target.error);
+    log.fail('Something is wrong with indexedDB, for more information, checkout console');
+    log.fail(target.error);
     throw new Error(target.error);
   };
 }
@@ -74,6 +74,7 @@ function _openSuccessCallbackHandler(configStoreConfig, successCallback) {
 // set present key value to _presentKey (the private property)
 function _getPresentKey(storeName, successCallback) {
   const transaction = _db.transaction([storeName]);
+  const successMessage = `now ${storeName} 's max key is ${_presentKey[storeName]}`; // initial value is 0
 
   _presentKey[storeName] = 0;
   getAllRequest(transaction, storeName).onsuccess = ({ target }) => {
@@ -84,13 +85,8 @@ function _getPresentKey(storeName, successCallback) {
       cursor.continue();
     }
   };
-  transaction.oncomplete = () => {
-    log.success(`now ${storeName} 's max key is ${_presentKey[storeName]}`); // initial value is 0
-    if (successCallback) {
-      successCallback();
-      log.success('openSuccessCallback finished');
-    }
-  };
+  promiseGenerator.transaction(transaction, successMessage)
+    .then(successCallback);
 }
 
 function _createObjectStoreHandler(configStoreConfig) {
@@ -101,22 +97,24 @@ function _createObjectStoreHandler(configStoreConfig) {
   });
 }
 
-function _createObjectStore(storeConfig) {
-  const store = _db.createObjectStore(storeConfig.storeName, { keyPath: storeConfig.key, autoIncrement: true });
+function _createObjectStore({ storeName, key, initialData }) {
+  const store = _db.createObjectStore(storeName, { keyPath: key, autoIncrement: true });
+  const { transaction } = store;
+  const successMessage = `create ${storeName} 's object store succeed`;
 
-  // Use transaction oncomplete to make sure the object Store creation is finished
-  store.transaction.oncomplete = () => {
-    log.success(`create ${storeConfig.storeName} 's object store succeed`);
-    if (storeConfig.initialData) {
+  promiseGenerator.transaction(transaction, successMessage)
+    .then(() => {
+      if (initialData) {
       // Store initial values in the newly created object store.
-      _initialDataHandler(storeConfig.storeName, storeConfig.initialData);
-    }
-  };
+        _initialDataHandler(storeName, initialData);
+      }
+    });
 }
 
 function _initialDataHandler(storeName, initialData) {
   const transaction = _db.transaction([storeName], 'readwrite');
   const objectStore = transaction.objectStore(storeName);
+  const successMessage = `add all ${storeName} 's initial data done`;
 
   parseJSONData(initialData, 'initial').forEach((data, index) => {
     const addRequest = objectStore.add(data);
@@ -125,11 +123,11 @@ function _initialDataHandler(storeName, initialData) {
       log.success(`add initial data[${index}] successed`);
     };
   });
-  transaction.oncomplete = () => {
-    log.success(`add all ${storeName} 's initial data done`);
-    _getPresentKey(storeName);
-  };
+  promiseGenerator.transaction(transaction, successMessage)
+    .then(() => { _getPresentKey(storeName); });
 }
+
+/* synchronous API */
 
 function getLength(storeName = _defaultStoreName) {
   return _presentKey[storeName];
@@ -141,7 +139,7 @@ function getNewKey(storeName = _defaultStoreName) {
   return _presentKey[storeName];
 }
 
-/* crud methods */
+/* asynchronous API: crud methods */
 
 const getItem = (key, storeName = _defaultStoreName) =>
   crud.get(_db, key, storeName);
@@ -179,4 +177,4 @@ export default {
   removeWhetherConditionItem,
   clear,
   updateItem,
-};;
+};

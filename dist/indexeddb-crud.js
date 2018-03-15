@@ -20,6 +20,10 @@ var _parseJSONData = require('./utlis/parseJSONData');
 
 var _parseJSONData2 = _interopRequireDefault(_parseJSONData);
 
+var _promiseGenerator = require('./utlis/promiseGenerator');
+
+var _promiseGenerator2 = _interopRequireDefault(_promiseGenerator);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var _db = void 0;
@@ -28,12 +32,11 @@ var _presentKey = {}; // store multi-objectStore's presentKey
 
 function open(config) {
   return new Promise(function (resolve, reject) {
-
     if (window.indexedDB) {
       _openHandler(config, resolve);
     } else {
       _log2.default.fail('Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it');
-      reject(error);
+      reject();
     }
   });
 }
@@ -44,7 +47,7 @@ function _openHandler(config, successCallback) {
   // an onblocked event is fired until they are closed or reloaded
   openRequest.onblocked = function () {
     // If some other tab is loaded with the database, then it needs to be closed before we can proceed.
-    window.alert('Please close all other tabs with this site open');
+    _log2.default.fail('Please close all other tabs with this site open');
   };
 
   // Creating or updating the version of the database
@@ -63,7 +66,7 @@ function _openHandler(config, successCallback) {
     _db = target.result;
     _db.onversionchange = function () {
       _db.close();
-      window.alert('A new version of this page is ready. Please reload');
+      _log2.default.fail('A new version of this page is ready. Please reload');
     };
     _openSuccessCallbackHandler(config.storeConfig, successCallback);
   };
@@ -72,8 +75,8 @@ function _openHandler(config, successCallback) {
   openRequest.onerror = function (_ref3) {
     var target = _ref3.target;
 
-    window.alert('Something is wrong with indexedDB, for more information, checkout console');
-    console.log(target.error);
+    _log2.default.fail('Something is wrong with indexedDB, for more information, checkout console');
+    _log2.default.fail(target.error);
     throw new Error(target.error);
   };
 }
@@ -99,6 +102,7 @@ function _openSuccessCallbackHandler(configStoreConfig, successCallback) {
 // set present key value to _presentKey (the private property)
 function _getPresentKey(storeName, successCallback) {
   var transaction = _db.transaction([storeName]);
+  var successMessage = 'now ' + storeName + ' \'s max key is ' + _presentKey[storeName]; // initial value is 0
 
   _presentKey[storeName] = 0;
   (0, _getAllRequest2.default)(transaction, storeName).onsuccess = function (_ref4) {
@@ -111,13 +115,7 @@ function _getPresentKey(storeName, successCallback) {
       cursor.continue();
     }
   };
-  transaction.oncomplete = function () {
-    _log2.default.success('now ' + storeName + ' \'s max key is ' + _presentKey[storeName]); // initial value is 0
-    if (successCallback) {
-      successCallback();
-      _log2.default.success('openSuccessCallback finished');
-    }
-  };
+  _promiseGenerator2.default.transaction(transaction, successMessage).then(successCallback);
 }
 
 function _createObjectStoreHandler(configStoreConfig) {
@@ -128,22 +126,28 @@ function _createObjectStoreHandler(configStoreConfig) {
   });
 }
 
-function _createObjectStore(storeConfig) {
-  var store = _db.createObjectStore(storeConfig.storeName, { keyPath: storeConfig.key, autoIncrement: true });
+function _createObjectStore(_ref5) {
+  var storeName = _ref5.storeName,
+      key = _ref5.key,
+      initialData = _ref5.initialData;
 
-  // Use transaction oncomplete to make sure the object Store creation is finished
-  store.transaction.oncomplete = function () {
-    _log2.default.success('create ' + storeConfig.storeName + ' \'s object store succeed');
-    if (storeConfig.initialData) {
+  var store = _db.createObjectStore(storeName, { keyPath: key, autoIncrement: true });
+  var transaction = store.transaction;
+
+  var successMessage = 'create ' + storeName + ' \'s object store succeed';
+
+  _promiseGenerator2.default.transaction(transaction, successMessage).then(function () {
+    if (initialData) {
       // Store initial values in the newly created object store.
-      _initialDataHandler(storeConfig.storeName, storeConfig.initialData);
+      _initialDataHandler(storeName, initialData);
     }
-  };
+  });
 }
 
 function _initialDataHandler(storeName, initialData) {
   var transaction = _db.transaction([storeName], 'readwrite');
   var objectStore = transaction.objectStore(storeName);
+  var successMessage = 'add all ' + storeName + ' \'s initial data done';
 
   (0, _parseJSONData2.default)(initialData, 'initial').forEach(function (data, index) {
     var addRequest = objectStore.add(data);
@@ -152,11 +156,12 @@ function _initialDataHandler(storeName, initialData) {
       _log2.default.success('add initial data[' + index + '] successed');
     };
   });
-  transaction.oncomplete = function () {
-    _log2.default.success('add all ' + storeName + ' \'s initial data done');
+  _promiseGenerator2.default.transaction(transaction, successMessage).then(function () {
     _getPresentKey(storeName);
-  };
+  });
 }
+
+/* synchronous API */
 
 function getLength() {
   var storeName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultStoreName;
@@ -172,7 +177,7 @@ function getNewKey() {
   return _presentKey[storeName];
 }
 
-/* crud methods */
+/* asynchronous API: crud methods */
 
 var getItem = function getItem(key) {
   var storeName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _defaultStoreName;
@@ -227,5 +232,4 @@ exports.default = {
   clear: clear,
   updateItem: updateItem
 };
-;
 //# sourceMappingURL=indexeddb-crud.js.map
