@@ -65,9 +65,9 @@ var getItem = function getItem(key) {
   return _crud2.default.get(_db, key, storeName);
 };
 
-var getWhetherConditionItem = function getWhetherConditionItem(condition, whether) {
+var getConditionItem = function getConditionItem(condition, whether) {
   var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
-  return _crud2.default.getWhetherCondition(_db, condition, whether, storeName);
+  return _crud2.default.getCondition(_db, condition, whether, storeName);
 };
 
 var getAll = function getAll() {
@@ -85,9 +85,9 @@ var removeItem = function removeItem(key) {
   return _crud2.default.remove(_db, key, storeName);
 };
 
-var removeWhetherConditionItem = function removeWhetherConditionItem(condition, whether) {
+var removeConditionItem = function removeConditionItem(condition, whether) {
   var storeName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _defaultStoreName;
-  return _crud2.default.removeWhetherCondition(_db, condition, whether, storeName);
+  return _crud2.default.removeCondition(_db, condition, whether, storeName);
 };
 
 var clear = function clear() {
@@ -227,11 +227,11 @@ exports.default = {
   getLength: getLength,
   getNewKey: getNewKey,
   getItem: getItem,
-  getWhetherConditionItem: getWhetherConditionItem,
+  getConditionItem: getConditionItem,
   getAll: getAll,
   addItem: addItem,
   removeItem: removeItem,
-  removeWhetherConditionItem: removeWhetherConditionItem,
+  removeConditionItem: removeConditionItem,
   clear: clear,
   updateItem: updateItem
 };

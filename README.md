@@ -22,14 +22,14 @@ yarn add indexeddb-crud
 
 ### first step
 
-* [open(config)](https://github.com/RayJune/indexeddb-crud#openconfig-successcallback-failcallback)
+* [open(config)](https://github.com/RayJune/indexeddb-crud#openconfig)
 
 **Only you open it, you can use these synchronous&asynchronous API**.
 
 ### synchronous API:
 
 * [getLength(storeName?)](https://github.com/RayJune/indexeddb-crud#getlengthstorename)
-* [getNewKey(storeName?)](https://github.com/RayJune/indexeddb-crud#getlengthstorename)
+* [getNewKey(storeName?)](https://github.com/RayJune/indexeddb-crud#getnewkeystorename)
 
 ### asynchronous API
 
@@ -39,21 +39,21 @@ get:
 
 * [getItem(key, storeName?)](https://github.com/RayJune/indexeddb-crud#getitemkey-storename)
 * [getConditionItem(condition, whether, storeName?)](https://github.com/RayJune/indexeddb-crud#getconditionitemcondition-whether-storename)
-* [getAll(storeName?)](https://github.com/RayJune/indexeddb-crud#getallsuccesscallback-storename)
+* [getAll(storeName?)](https://github.com/RayJune/indexeddb-crud#getallstorename)
 
 add:
 
-* [addItem(data, storeName?)](https://github.com/RayJune/indexeddb-crud#additemdata-successcallback-storename)
+* [addItem(data, storeName?)](https://github.com/RayJune/indexeddb-crud#additemdata-storename)
 
 remove:
 
-* [removeItem(key, storeName?)](https://github.com/RayJune/indexeddb-crud#removeitemkey-successcallback-storename)
-* [removeConditionItem(condition, whether, storeName?)](https://github.com/RayJune/indexeddb-crud#removeconditionitemcondition-whether-successcallback-storename)
-* [clear(storeName?)](https://github.com/RayJune/indexeddb-crud#clearsuccesscallback-storename)
+* [removeItem(key, storeName?)](https://github.com/RayJune/indexeddb-crud#removeitemkey-storename)
+* [removeConditionItem(condition, whether, storeName?)](https://github.com/RayJune/indexeddb-crud#removeconditionitemcondition-whether-storename)
+* [clear(storeName?)](https://github.com/RayJune/indexeddb-crud#clearstorename)
 
 update:
 
-* [updateItem(newData, storeName?)](https://github.com/RayJune/indexeddb-crud#updateitemnewdata-successcallback-storename)
+* [updateItem(newData, storeName?)](https://github.com/RayJune/indexeddb-crud#updateitemnewdata-storename)
 
 ## usage
 
@@ -178,27 +178,6 @@ DB.getNewKey(storeName);
 
 You will need it in `addItem()`.
 
-#### addItem(data, storeName?)
-
-* data's structure should at least contains number type key.
-
-e.g.
-
-```javascript
-var data = { 
-  "id": DB.getNewKey(storeName), 
-  "event": 'play soccer', 
-  "finished": false 
-};
-
-// If you have only 1 objectSotre, suggest use the default storeName
-DB.addItem(data);
-
-// or pass storeName explicitly
-var storeName = 'list';
-DB.addItem(data, storeName);
-```
-
 #### getItem(key, storeName?)
 
 ```javascript
@@ -257,6 +236,27 @@ DB.getAll(doSomething);
 // or pass storeName explicitly
 var storeName = 'list';
 DB.getAll(doSomething, storeName);
+```
+
+#### addItem(data, storeName?)
+
+* data's structure should at least contains number type key.
+
+e.g.
+
+```javascript
+var data = { 
+  "id": DB.getNewKey(storeName), 
+  "event": 'play soccer', 
+  "finished": false 
+};
+
+// If you have only 1 objectSotre, suggest use the default storeName
+DB.addItem(data);
+
+// or pass storeName explicitly
+var storeName = 'list';
+DB.addItem(data, storeName);
 ```
 
 #### removeItem(key, storeName?)

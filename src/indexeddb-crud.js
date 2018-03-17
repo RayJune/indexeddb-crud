@@ -35,8 +35,8 @@ const getNewKey = (storeName = _defaultStoreName) => {
 const getItem = (key, storeName = _defaultStoreName) =>
   crud.get(_db, key, storeName);
 
-const getWhetherConditionItem = (condition, whether, storeName = _defaultStoreName) =>
-  crud.getWhetherCondition(_db, condition, whether, storeName);
+const getConditionItem = (condition, whether, storeName = _defaultStoreName) =>
+  crud.getCondition(_db, condition, whether, storeName);
 
 const getAll = (storeName = _defaultStoreName) =>
   crud.getAll(_db, storeName);
@@ -47,8 +47,8 @@ const addItem = (newData, storeName = _defaultStoreName) =>
 const removeItem = (key, storeName = _defaultStoreName) =>
   crud.remove(_db, key, storeName);
 
-const removeWhetherConditionItem = (condition, whether, storeName = _defaultStoreName) =>
-  crud.removeWhetherCondition(_db, condition, whether, storeName);
+const removeConditionItem = (condition, whether, storeName = _defaultStoreName) =>
+  crud.removeCondition(_db, condition, whether, storeName);
 
 const clear = (storeName = _defaultStoreName) =>
   crud.clear(_db, storeName);
@@ -171,11 +171,11 @@ export default {
   getLength,
   getNewKey,
   getItem,
-  getWhetherConditionItem,
+  getConditionItem,
   getAll,
   addItem,
   removeItem,
-  removeWhetherConditionItem,
+  removeConditionItem,
   clear,
   updateItem,
 };

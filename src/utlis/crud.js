@@ -11,7 +11,7 @@ function get(dbValue, key, storeName) {
 }
 
 // get conditional data (boolean condition)
-function getWhetherCondition(dbValue, condition, whether, storeName) {
+function getCondition(dbValue, condition, whether, storeName) {
   const transaction = dbValue.transaction([storeName]);
   const result = []; // use an array to storage eligible data
   const successMessage = `get ${storeName}'s ${condition} = ${whether} data success`;
@@ -63,7 +63,7 @@ function remove(dbValue, key, storeName) {
   return promiseGenerator.request(deleteRequest, successMessage, key);
 }
 
-function removeWhetherCondition(dbValue, condition, whether, storeName) {
+function removeCondition(dbValue, condition, whether, storeName) {
   const transaction = dbValue.transaction([storeName], 'readwrite');
   const successMessage = `remove ${storeName}'s ${condition} = ${whether} data success`;
 
@@ -107,11 +107,11 @@ function update(dbValue, newData, storeName) {
 
 export default {
   get,
-  getWhetherCondition,
+  getCondition,
   getAll,
   add,
   remove,
-  removeWhetherCondition,
+  removeCondition,
   clear,
   update,
 };
