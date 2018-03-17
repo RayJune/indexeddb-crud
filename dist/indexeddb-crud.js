@@ -100,6 +100,8 @@ var updateItem = function updateItem(newData) {
   return _crud2.default.update(_db, newData, storeName);
 };
 
+/* handle DB.open */
+
 function _openHandler(config, successCallback) {
   var openRequest = window.indexedDB.open(config.name, config.version); // open indexedDB
 

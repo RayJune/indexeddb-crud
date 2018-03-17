@@ -118,7 +118,6 @@ function clear(dbValue, storeName) {
   return _promiseGenerator2.default.transaction(transaction, successMessage);
 }
 
-// update one
 function update(dbValue, newData, storeName) {
   var transaction = dbValue.transaction([storeName], 'readwrite');
   var putRequest = transaction.objectStore(storeName).put(newData);

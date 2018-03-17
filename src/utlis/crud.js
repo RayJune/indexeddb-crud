@@ -97,7 +97,6 @@ function clear(dbValue, storeName) {
   return promiseGenerator.transaction(transaction, successMessage);
 }
 
-// update one
 function update(dbValue, newData, storeName) {
   const transaction = dbValue.transaction([storeName], 'readwrite');
   const putRequest = transaction.objectStore(storeName).put(newData);

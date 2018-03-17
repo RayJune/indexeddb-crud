@@ -56,6 +56,8 @@ const clear = (storeName = _defaultStoreName) =>
 const updateItem = (newData, storeName = _defaultStoreName) =>
   crud.update(_db, newData, storeName);
 
+/* handle DB.open */
+
 function _openHandler(config, successCallback) {
   const openRequest = window.indexedDB.open(config.name, config.version); // open indexedDB
 

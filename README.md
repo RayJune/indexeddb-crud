@@ -22,7 +22,7 @@ yarn add indexeddb-crud
 
 ### first step
 
-* [open(config).then().catch()](https://github.com/RayJune/indexeddb-crud#openconfig-successcallback-failcallback)
+* [open(config)](https://github.com/RayJune/indexeddb-crud#openconfig-successcallback-failcallback)
 
 **Only you open it, you can use these synchronous&asynchronous API**.
 
@@ -37,23 +37,23 @@ indexeddb-crud support for the ES6 Promises API, so you can use `then` & `catch`
 
 get:
 
-* [getItem(key, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#getitemkey-successcallback-storename)
-* [getConditionItem(condition, whether, successCallback?, storeName?)](https://github.com/RayJune/indexeddb-crud#getconditionitemcondition-whether-successcallback-storename)
-* [getAll(storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#getallsuccesscallback-storename)
+* [getItem(key, storeName?)](https://github.com/RayJune/indexeddb-crud#getitemkey-storename)
+* [getConditionItem(condition, whether, storeName?)](https://github.com/RayJune/indexeddb-crud#getconditionitemcondition-whether-storename)
+* [getAll(storeName?)](https://github.com/RayJune/indexeddb-crud#getallsuccesscallback-storename)
 
 add:
 
-* [addItem(data, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#additemdata-successcallback-storename)
+* [addItem(data, storeName?)](https://github.com/RayJune/indexeddb-crud#additemdata-successcallback-storename)
 
 remove:
 
-* [removeItem(key, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#removeitemkey-successcallback-storename)
-* [removeConditionItem(condition, whether, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#removeconditionitemcondition-whether-successcallback-storename)
-* [clear(storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#clearsuccesscallback-storename)
+* [removeItem(key, storeName?)](https://github.com/RayJune/indexeddb-crud#removeitemkey-successcallback-storename)
+* [removeConditionItem(condition, whether, storeName?)](https://github.com/RayJune/indexeddb-crud#removeconditionitemcondition-whether-successcallback-storename)
+* [clear(storeName?)](https://github.com/RayJune/indexeddb-crud#clearsuccesscallback-storename)
 
 update:
 
-* [updateItem(newData, storeName?).then().catch()](https://github.com/RayJune/indexeddb-crud#updateitemnewdata-successcallback-storename)
+* [updateItem(newData, storeName?)](https://github.com/RayJune/indexeddb-crud#updateitemnewdata-successcallback-storename)
 
 ## usage
 
@@ -68,7 +68,7 @@ import DB from 'indexeddb-crud';
 
 ### API
 
-#### open(config).then().catch()
+#### open(config)
 
 * initialData is *Optional*, and it's a array object
 * about initialData, `key = 0` is just for demo, we only use `key >= 1`, so we usually begain at `key = 1`
@@ -76,13 +76,13 @@ import DB from 'indexeddb-crud';
 
 ```javascript
 config = {
-  name: '',
-  version: '',
-  storeConfig: [
+  "name": '',
+  "version": '',
+  "storeConfig": [
     {
-      storeName: '',
-      key: '',
-      storeConfig: [
+      "storeName": '',
+      "key": '',
+      "storeConfig": [
         // must have key property, number type
       ]
     },
@@ -95,14 +95,14 @@ correct config just like this:
 
 ```javascript
 var DBConfig = {
-  name: 'JustToDo',
-  version: '23',
-  storeConfig: [
+  "name": "JustToDo",
+  "version": 23,
+  "storeConfig": [
     {
-      storeName: 'list',
-      key: 'id',
-      initialData: [
-        { id: 0, event: 'JustDemo', finished: true } // just for demo, not actual use
+      "storeName": "list",
+      "key": "id",
+      "initialData": [
+        { "id": 0, "event": "JustDemo", "finished": true } // just for demo, not actual use
       ]
     }
   ]
@@ -113,20 +113,20 @@ If you need more than 1 ObjectStore:
 
 ```javascript
 var DBConfig = {
-  name: 'JustToDo',
-  version: '23',
-  storeConfig: [
+  "name": "JustToDo",
+  "version": 23,
+  "storeConfig": [
     {
-      storeName: 'list',
-      key: 'id',
-      initialData: [
-        { id: 1, event: 'JustDemo', finished: true }
+      "storeName": "list",
+      "key": "id",
+      "initialData": [
+        { "id": 1, "event": "JustDemo", "finished": true }
       ]
     },
     {
-      storeName: 'aphorism',
-      key: 'id',
-      initialData: [
+      "storeName": "aphorism",
+      "key": "id",
+      "initialData": [
         {
           "id": 1,
           "content": "You're better than that"
@@ -178,7 +178,7 @@ DB.getNewKey(storeName);
 
 You will need it in `addItem()`.
 
-#### addItem(data, storeName?).then().catch()
+#### addItem(data, storeName?)
 
 * data's structure should at least contains number type key.
 
@@ -186,9 +186,9 @@ e.g.
 
 ```javascript
 var data = { 
-  id: DB.getNewKey(storeName), 
-  event: 'play soccer', 
-  finished: false 
+  "id": DB.getNewKey(storeName), 
+  "event": 'play soccer', 
+  "finished": false 
 };
 
 // If you have only 1 objectSotre, suggest use the default storeName
@@ -199,7 +199,7 @@ var storeName = 'list';
 DB.addItem(data, storeName);
 ```
 
-#### getItem(key, storeName?).then().catch()
+#### getItem(key, storeName?)
 
 ```javascript
 function doSomething(data) {
@@ -216,21 +216,21 @@ DB.getItem(1, storeName).then(doSomething);
 
 * the key should be a number, which matched to db's id
 
-#### getConditionItem(condition, whether, storeName?).then().catch()
+#### getConditionItem(condition, whether, storeName?)
 
 * whether is `Boolean` type
 * `condition` should be a **boolean-condition**, for example:
 
 ```javascript
 var DBConfig = {
-  name: 'JustToDo',
-  version: '23',
-  storeConfig: [
+  "name": "JustToDo",
+  "version": 23,
+  "storeConfig": [
     {
-      storeName: 'list',
-      key: 'id',
-      initialData: [
-        { id: 0, event: 'JustDemo', finished: true } // just for demo, not actual use
+      "storeName": "list",
+      "key": "id",
+      "initialData": [
+        { "id": 0, "event": "JustDemo", "finished": true } // just for demo, not actual use
       ]
     }
   ]
@@ -259,7 +259,7 @@ var storeName = 'list';
 DB.getAll(doSomething, storeName);
 ```
 
-#### removeItem(key, storeName?).then().catch()
+#### removeItem(key, storeName?)
 
 * the **key should be number type**, which matched to db's key.
 
@@ -272,21 +272,21 @@ var storeName = 'list';
 DB.removeItem(1, storeName).then(doSomething);
 ```
 
-#### removeConditionItem(condition, whether, storeName?).then().catch()
+#### removeConditionItem(condition, whether, storeName?)
 
 * whether is Boolean
 * `condition` should be a boolean-condition, for example:
 
 ```javascript
 var DBConfig = {
-  name: 'JustToDo',
-  version: '23',
-  storeConfig: [
+  "name": "JustToDo",
+  "version": 23,
+  "storeConfig": [
     {
-      storeName: 'list',
-      key: 'id',
-      initialData: [
-        { id: 0, event: 'JustDemo', finished: true } // just for demo, not actual use
+      "storeName": "list",
+      "key": "id",
+      "initialData": [
+        { "id": 0, "event": "JustDemo", "finished": true } // just for demo, not actual use
       ]
     }
   ]
@@ -300,7 +300,7 @@ var storeName = 'list';
 DB.removeConditionItem('true', storeName).then(successCallback);
 ```
 
-#### clear(storeName?).then().catch()
+#### clear(storeName?)
 
 ```javascript
 // If you have only 1 objectSotre, suggest use the default storeName
@@ -311,18 +311,18 @@ var storeName = 'list';
 DB.clear(storeName).then(doSomething);
 ```
 
-#### updateItem(newData, storeName?).then().catch()
+#### updateItem(newData, storeName?)
 
 ```javascript
 var DBConfig = {
-  name: 'JustToDo',
-  version: '23',
-  storeConfig: [
+  "name": "JustToDo",
+  "version": 23,
+  "storeConfig": [
     {
-      storeName: 'list',
-      key: 'id',
-      initialData: [
-        { id: 0, event: 'JustDemo', finished: true } // just for demo, not actual use
+      "storeName": "list",
+      "key": "id",
+      "initialData": [
+        { "id": 0, "event": "JustDemo", "finished": true } // just for demo, not actual use
       ]
     }
   ]
