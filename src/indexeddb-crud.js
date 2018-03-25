@@ -10,15 +10,14 @@ const _presentKey = {}; // store multi-objectStore's presentKey
 
 /* first step, open it and use others API */
 
-const open = config =>
-  new Promise((resolve, reject) => {
-    if (window.indexedDB) {
-      _openHandler(config, resolve);
-    } else {
-      log.fail('Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it');
-      reject();
-    }
-  });
+const open = config => new Promise((resolve, reject) => {
+  if (window.indexedDB) {
+    _openHandler(config, resolve);
+  } else {
+    log.fail('Your browser doesn\'t support a stable version of IndexedDB. You can install latest Chrome or FireFox to handler it');
+    reject();
+  }
+});
 
 /* synchronous API */
 

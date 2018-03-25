@@ -1,7 +1,7 @@
 import log from './log';
 
-const requestPromise = (request, successMessage, data) =>
-  new Promise((resolve, reject) => {
+function requestPromise(request, successMessage, data) {
+  return new Promise((resolve, reject) => {
     request.onsuccess = () => {
       let successData = data;
 
@@ -16,9 +16,10 @@ const requestPromise = (request, successMessage, data) =>
       reject();
     };
   });
+}
 
-const transactionPromise = (transaction, successMessage, data) =>
-  new Promise((resolve, reject) => {
+function transactionPromise(transaction, successMessage, data) {
+  return new Promise((resolve, reject) => {
     transaction.oncomplete = () => {
       log.success(successMessage);
       resolve(data);
@@ -28,6 +29,7 @@ const transactionPromise = (transaction, successMessage, data) =>
       reject();
     };
   });
+}
 
 export default {
   request: requestPromise,

@@ -10,7 +10,7 @@ var _log2 = _interopRequireDefault(_log);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var requestPromise = function requestPromise(request, successMessage, data) {
+function requestPromise(request, successMessage, data) {
   return new Promise(function (resolve, reject) {
     request.onsuccess = function () {
       var successData = data;
@@ -26,9 +26,9 @@ var requestPromise = function requestPromise(request, successMessage, data) {
       reject();
     };
   });
-};
+}
 
-var transactionPromise = function transactionPromise(transaction, successMessage, data) {
+function transactionPromise(transaction, successMessage, data) {
   return new Promise(function (resolve, reject) {
     transaction.oncomplete = function () {
       _log2.default.success(successMessage);
@@ -39,7 +39,7 @@ var transactionPromise = function transactionPromise(transaction, successMessage
       reject();
     };
   });
-};
+}
 
 exports.default = {
   request: requestPromise,

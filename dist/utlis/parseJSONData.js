@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var parseJSONData = function parseJSONData(rawdata, name) {
+function parseJSONData(rawdata, name) {
   try {
     var parsedData = JSON.parse(JSON.stringify(rawdata));
 
@@ -13,7 +13,7 @@ var parseJSONData = function parseJSONData(rawdata, name) {
     console.log(error);
     throw error;
   }
-};
+}
 
 exports.default = parseJSONData;
 //# sourceMappingURL=parseJSONData.js.map

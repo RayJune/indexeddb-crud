@@ -1,4 +1,4 @@
-const parseJSONData = (rawdata, name) => {
+function parseJSONData(rawdata, name) {
   try {
     const parsedData = JSON.parse(JSON.stringify(rawdata));
 
@@ -8,6 +8,6 @@ const parseJSONData = (rawdata, name) => {
     console.log(error);
     throw error;
   }
-};
+}
 
 export default parseJSONData;
